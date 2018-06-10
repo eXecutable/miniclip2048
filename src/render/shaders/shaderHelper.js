@@ -1,84 +1,148 @@
-export default class shaderHelper {
+export default class ShaderHelper {
 
 	constructor(gl) {
+		this.gl = gl;
 		if(!gl){
 			throw "No graphic context passed to shaderHelper";
 		}
 
-		this.vertShaderString =  `#version 300 es
-								// an attribute is an input (in) to a vertex shader.
-								// It will receive data from a buffer
-								in vec2 aVertexPosition;
-								
-								// Used to pass in the resolution of the canvas
-								uniform vec2 uResolutionXY;
-								
-								// translation to add to position
-								uniform vec2 uTranslationXY;
-								
-								void main() {
-									// Add in the translation
-									vec2 position = aVertexPosition + uTranslationXY;
-								
-									// convert the position from pixels to 0.0 to 1.0
-									vec2 zeroToOne = position / uResolutionXY;
-								
-									// convert from 0->1 to 0->2
-									vec2 zeroToTwo = zeroToOne * 2.0;
-								
-									// convert from 0->2 to -1->+1 (clipspace)
-									vec2 clipSpace = zeroToTwo - 1.0;
-								
-									gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-								}`;
+		this.locations = Object.freeze({
+			/**
+			 * TODO:
+			 */
+			POSITION_LOCATION: function() { return 0; },
+			/**
+			 * TODO:
+			 */
+			COLOR_LOCATION: function() { return 1; },
+			/**
+			 * TODO:
+			 */
+			TRANSLATE_LOCATION: function() { return 2; },
+			/**
+			 * Returns the location of the projection uniform
+			 * @param {WebGLProgram} program the instance to find in
+			 * @returns {Integer} The location
+			 */
+			PROJECTION_LOCATION: function(program) {
+				return gl.getUniformLocation(program, "projection");
+			}
+		});
 
-		this.squareShaderString =  `#version 300 es
-								// an attribute is an input (in) to a vertex shader.
-								// It will receive data from a buffer
-								uniform vec2 aVertexPosition;
+		this.vertShaderString = `#version 300 es
+								#define POSITION_LOCATION 0
+								#define COLOR_LOCATION 1
+								#define TRANSFORMS_LOCATION 2
+								#define SCALE_LOCATION 3
+
+								precision mediump float;
+
+								layout(location = POSITION_LOCATION) in vec2 pos;
+								layout(location = COLOR_LOCATION) in vec4 inColor;
+								layout(location = TRANSFORMS_LOCATION) in vec2 translate;
+								layout(location = SCALE_LOCATION) in vec2 scale;
 								
-								// Used to pass in the resolution of the canvas
-								uniform vec2 uResolutionXY;
-								
-								// translation to add to position
-								in vec2 uTranslationXY;
-								
+								uniform vec2 projection;
+
+								flat out vec4 fragColor;
+
+								// all shaders have a main function
 								void main() {
+									fragColor = inColor;
+									
 									// Add in the translation
-									vec2 position = aVertexPosition + uTranslationXY;
-								
 									// convert the position from pixels to 0.0 to 1.0
-									vec2 zeroToOne = position / uResolutionXY;
-								
+									vec2 position = (pos + translate) / projection;
 									// convert from 0->1 to 0->2
-									vec2 zeroToTwo = zeroToOne * 2.0;
-								
 									// convert from 0->2 to -1->+1 (clipspace)
-									vec2 clipSpace = zeroToTwo - 1.0;
-								
+									vec2 clipSpace = (position * 2.0) - 1.0;
+
 									gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
 								}`;
 
 		this.fragShaderString = `#version 300 es
+
 								precision mediump float;
-								
-								uniform vec4 uGlobalColor;
-								
+
+								flat in vec4 fragColor;
 								out vec4 outColor;
-								
+
 								void main() {
-									outColor = uGlobalColor;
+									outColor = fragColor;
 								}`;
-		this.gl = gl;
+
+		// this.vertShaderString =  `#version 300 es
+		// 						// an attribute is an input (in) to a vertex shader.
+		// 						// It will receive data from a buffer
+		// 						in vec2 aVertexPosition;
+								
+		// 						// Used to pass in the resolution of the canvas
+		// 						uniform vec2 uResolutionXY;
+								
+		// 						// translation to add to position
+		// 						uniform vec2 uTranslationXY;
+								
+		// 						void main() {
+		// 							// Add in the translation
+		// 							vec2 position = aVertexPosition + uTranslationXY;
+								
+		// 							// convert the position from pixels to 0.0 to 1.0
+		// 							vec2 zeroToOne = position / uResolutionXY;
+								
+		// 							// convert from 0->1 to 0->2
+		// 							vec2 zeroToTwo = zeroToOne * 2.0;
+								
+		// 							// convert from 0->2 to -1->+1 (clipspace)
+		// 							vec2 clipSpace = zeroToTwo - 1.0;
+								
+		// 							gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+		// 						}`;
+
+		// this.squareShaderString =  `#version 300 es
+		// 						// an attribute is an input (in) to a vertex shader.
+		// 						// It will receive data from a buffer
+		// 						uniform vec2 aVertexPosition;
+								
+		// 						// Used to pass in the resolution of the canvas
+		// 						uniform vec2 uResolutionXY;
+								
+		// 						// translation to add to position
+		// 						in vec2 uTranslationXY;
+								
+		// 						void main() {
+		// 							// Add in the translation
+		// 							vec2 position = aVertexPosition + uTranslationXY;
+								
+		// 							// convert the position from pixels to 0.0 to 1.0
+		// 							vec2 zeroToOne = position / uResolutionXY;
+								
+		// 							// convert from 0->1 to 0->2
+		// 							vec2 zeroToTwo = zeroToOne * 2.0;
+								
+		// 							// convert from 0->2 to -1->+1 (clipspace)
+		// 							vec2 clipSpace = zeroToTwo - 1.0;
+								
+		// 							gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+		// 						}`;
+
+		// this.fragShaderString = `#version 300 es
+		// 						precision mediump float;
+								
+		// 						uniform vec4 uGlobalColor;
+								
+		// 						out vec4 outColor;
+								
+		// 						void main() {
+		// 							outColor = uGlobalColor;
+		// 						}`;
 	}
 
 	/**
-   * @returns the program with the standard shaders
-   * @memberof shaderHelper
-  */
+	 * @returns the program with the standard shaders
+	 * @memberof shaderHelper
+	 */
 	getProgram() {
 		return this.createProgramFromSources(this.gl, [this.vertShaderString,this.fragShaderString], null, null);
-		//TODO: Optmize return this.createProgramFromSources(this.gl, [this.squareShaderString,this.fragShaderString], null, null);
 	}
   
 
@@ -152,7 +216,7 @@ export default class shaderHelper {
    * @memberof shaderHelper
    */
 	createProgramFromSources(gl, shaderSources, opt_attribs, opt_locations) {
-		let defaultShaderType = [
+		const defaultShaderType = [
 			"VERTEX_SHADER",
 			"FRAGMENT_SHADER",
 		];

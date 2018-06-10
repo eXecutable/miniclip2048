@@ -1,13 +1,21 @@
-import GameManager from "./game/GameManager.js";
-import InputManager from "./InputManager";
 import LocalStorageManager from "./LocalStorageManager.js";
 import RenderManager from "./render/RenderManager";
+import MainMenuManager from "./menus/MainMenuManager.js";
 
 
 window.addEventListener("load", function(){
+	
+	//Global objects of our game
 	window.GAME = {
-		renderManager: new RenderManager()
+		renderManager: new RenderManager(),
+		localStorage: new LocalStorageManager(),
 	};
-	window.GAME.gameManager = new GameManager(4, new InputManager(), new LocalStorageManager(), window.GAME.renderManager);
 
+	//game entry point
+	window.GAME.mainMenuManager = new MainMenuManager();
+
+	document.getElementById("loading").remove();
+
+	window.GAME.mainMenuManager.show();
+	
 }, false);

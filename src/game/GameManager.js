@@ -1,13 +1,14 @@
 import Grid from "./Grid.js";
 import Tile from "./Tile.js";
+import InGameInputManager from "./InGameInputManager";
 
 export default class GameManager {
     
-	constructor(size, inputManager, storageManager, renderManager) {
+	constructor(size) {
 		this.size           = size; // Size of the grid
-		this.inputManager   = inputManager;
-		this.storageManager = storageManager;
-		this.renderManager  = renderManager;
+		this.inputManager   = new InGameInputManager();
+		this.storageManager = window.GAME.localStorage;
+		this.renderer  		= window.GAME.renderManager.gameRenderer;
   
 		this.startTiles     = 2;
   
@@ -18,6 +19,17 @@ export default class GameManager {
 		this.setup();
 	}
   
+	//TODO: DerivefromScreenManager
+	show(previousScreen) {
+		this.previousScreen = previousScreen;
+		//TODO: this.storage.get
+	}
+
+	goBack(){
+		this.inputManager.unlisten();
+		this.previousScreen.show();
+	}
+
 	// Restart the game
 	restart() {
 		this.storageManager.clearGameState();
@@ -93,7 +105,7 @@ export default class GameManager {
 		}
   
 		
-		this.renderManager.update(this.grid, {});
+		this.renderer.update(this.grid, {});
 		//TODO: 	score:      this.score,
 		// 	over:       this.over,
 		// 	won:        this.won,
