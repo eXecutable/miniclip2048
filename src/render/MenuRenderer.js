@@ -2,10 +2,9 @@ import TextHelper from "./shaders/TextHelper.js";
 
 export default class MenuRenderer {
 
-	constructor(gl, shaderHelper){
+	constructor(gl){
 		this.gl = gl;
 
-		this.shaderProgram = shaderHelper.getProgram();
 		this.textHelper = new TextHelper(gl);
 
 		this.textHelper.init("game");
@@ -23,8 +22,14 @@ export default class MenuRenderer {
 		gl.clearColor(0.8, 0.5, 1.0, 1.0);
 		gl.clear(gl.COLOR_BUFFER_BIT);
 
-		this.textHelper.render(100, 100, "game");
-		this.textHelper.render(100, 300, "highscores");
+		if(buttonIndex === 0) {
+			this.textHelper.render(100, 100, "gameselected");
+			this.textHelper.render(100, 300, "highscores");
+		} else {
+			this.textHelper.render(100, 100, "game");
+			this.textHelper.render(100, 300, "highscoresselected");
+		}
+		
 
 		// gl.useProgram(this.shaderProgram);
 		// // Pass in the canvas resolution so we can convert from pixels to clipspace in the shader
@@ -47,6 +52,6 @@ export default class MenuRenderer {
 	}
 
 	releaseGL() {
-		this.gl.deleteProgram(this.shaderProgram);
+
 	}
 }

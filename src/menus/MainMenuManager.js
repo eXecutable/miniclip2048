@@ -7,10 +7,13 @@ export default class MainMenuManager {
     
 	constructor() {
 		this.buttonsIdx = Object.freeze({
-			start: 1,
-			highscores: 2
+			start: 0,
+			highscores: 1,
+			length: 2,
 		});
 		this.renderer = window.GAME.renderManager.menuRenderer;
+
+		this.currentButtonIdx = 0;
 	}
 
 	listen() {
@@ -40,12 +43,24 @@ export default class MainMenuManager {
 					event.preventDefault();
 					
 					switch (mapped) {
-					case 4://Enter
-						this.startGame();
+					case 0://Down
+						if (this.currentButtonIdx > 0) {
+							--this.currentButtonIdx;
+							this.renderer.render(this.currentButtonIdx);
+						}
 						break;
-					//TODO: select buttons
-					//this.renderer.render(this.buttonsIdx.start);
-					//this.renderer.render(this.buttonsIdx.highscores);
+					case 2://Up
+						if (this.currentButtonIdx < this.buttonsIdx.length) {
+							++this.currentButtonIdx;
+							this.renderer.render(this.currentButtonIdx);
+						}
+						break;
+					
+					case 4://Enter
+						if (this.currentButtonIdx === this.buttonsIdx.start) {
+							this.startGame();
+						}
+						break;
 					default:
 						break;
 					}

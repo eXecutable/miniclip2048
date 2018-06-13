@@ -1,14 +1,17 @@
+import TilesHelper from "./shaders/TilesHelper.js";
+
 export default class GameRenderer {
 
-	constructor(gl, shaderHelper){
+	constructor(gl){
 		this.gl = gl;
 
-		this.shaderProgram = shaderHelper.getProgram();
+		this.tilesHelper = new TilesHelper(gl);
+		this.shaderProgram = this.tilesHelper.shaderProgram;
 
-		this.inObjVertexXY = shaderHelper.locations.POSITION_LOCATION(this.shaderProgram);
-		this.inTranslationXY = shaderHelper.locations.TRANSLATE_LOCATION(this.shaderProgram);
-		this.inColor = shaderHelper.locations.COLOR_LOCATION(this.shaderProgram);
-		this.uResolutionXY = shaderHelper.locations.PROJECTION_LOCATION(this.shaderProgram);
+		this.inObjVertexXY = this.tilesHelper.locations.POSITION_LOCATION(this.shaderProgram);
+		this.inTranslationXY = this.tilesHelper.locations.TRANSLATE_LOCATION(this.shaderProgram);
+		this.inColor = this.tilesHelper.locations.COLOR_LOCATION(this.shaderProgram);
+		this.uResolutionXY = this.tilesHelper.locations.PROJECTION_LOCATION(this.shaderProgram);
     
 		// -- Init Vertex Array
 		this.squareVertexArray = gl.createVertexArray();

@@ -3,7 +3,7 @@ export default class HighScoresRenderer {
 	constructor(gl, shaderHelper){
 		this.gl = gl;
 
-		this.shaderProgram = shaderHelper.getProgram();
+		
 	}
 	
 	render() {
@@ -11,6 +11,6 @@ export default class HighScoresRenderer {
 	}
 
 	releaseGL() {
-		this.gl.deleteProgram(this.shaderProgram);
+		
 	}
 }

@@ -264,7 +264,7 @@ export default class TextHelper {
 	}
 		
 	/**
-	 * 
+	 * TODO:
 	 *
 	 * @memberof TextHelper
 	 */
@@ -300,9 +300,7 @@ export default class TextHelper {
 		//x,y in canvas space where the text should be placed
 		gl.uniform2fv(this.inTranslationXY, [x, y]);
 		//set tint color
-		gl.uniform4fv(this.inColor, [1.0, 1.0, 1.0, 1.0]);
-		
-		//TODO: tintColorsBuffer, default will be 0
+		gl.uniform4fv(this.inColor, [1.0, 1.0, 1.0, 1.0]);//TODO: paremeterize
 		
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, this.knownStrings[text].arrays.position, gl.DYNAMIC_DRAW);
