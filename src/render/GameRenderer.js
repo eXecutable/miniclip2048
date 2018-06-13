@@ -1,11 +1,13 @@
 import TilesHelper from "./shaders/TilesHelper.js";
+import TextHelper from "./shaders/TextHelper.js";
 
 export default class GameRenderer {
 
-	constructor(gl){
+	constructor(gl, x, y, tileSquareWidth, tileGapWidth){
 		this.gl = gl;
 
 		this.tilesHelper = new TilesHelper(gl);
+		this.textHelper = new TextHelper(gl);
 		this.shaderProgram = this.tilesHelper.shaderProgram;
 
 		this.inObjVertexXY = this.tilesHelper.locations.POSITION_LOCATION(this.shaderProgram);
@@ -13,20 +15,26 @@ export default class GameRenderer {
 		this.inColor = this.tilesHelper.locations.COLOR_LOCATION(this.shaderProgram);
 		this.uResolutionXY = this.tilesHelper.locations.PROJECTION_LOCATION(this.shaderProgram);
     
-		// -- Init Vertex Array
 		this.squareVertexArray = gl.createVertexArray();
 		gl.bindVertexArray(this.squareVertexArray);
 
-		// -- Init Buffers
+
+		this.x = x || 100;
+		this.y = y || 175;
+		this.tileSquareWidth = tileSquareWidth || 40;
+		this.tileGapWidth = tileGapWidth || 2;
+		this.tileAndGapWidth = 2*this.tileGapWidth + this.tileSquareWidth;
+		this.tileCenter = this.tileSquareWidth / 2;
+		
 		//Square 4 distinct vertexes, 2 triangles with 2 shared vertices
 		let squareVertexArr = new Float32Array([
-			-10, 10, 
-			10,  10,  
-			10, -10,
+			0, this.tileSquareWidth, 
+			this.tileSquareWidth,  this.tileSquareWidth,  
+			this.tileSquareWidth, 0,
 
-			-10, 10, 
-			10, -10, 
-			-10, -10
+			0, this.tileSquareWidth, 
+			this.tileSquareWidth, 0, 
+			0, 0
 		]);
 		let vertexNumTriangles = 2;
 		this.squareVertexArrayXYCount = squareVertexArr.length / vertexNumTriangles;
@@ -79,52 +87,41 @@ export default class GameRenderer {
 			}
 		}
 		
-		const backgrounds = {
-			2: {r:0.9333, g: 0.8941, b: 0.8549},
-			4: {r:0.9294, g: 0.8784, b: 0.7843},
-			8: {r:0.9490, g: 0.6941, b: 0.4745},
-			16: {r:0.9607, g: 0.5843, b: 0.3882},
-			32: {r:0.9647, g: 0.4862, b: 0.3725},
-			//TODO: 64: #f65e3b,
-			// 128: #edcf72,
-			// 256: #edcc61,
-			// 512: #edc850,
-			// 1024: #edc53f,
-			// 2048: #edc22e,
-			// 9000: #3c3a32
-		};
-
-// 		var eee4da =  rgb(238, 228, 218);
-// ede0c8 rgb(237, 224, 200)
-// f2b179 rgb(242, 177, 121)
-// f59563 rgb(245, 149, 99)
-// f67c5f rgb(246, 124, 95)
-
-// f65e3b rgb(246, 94, 59)
-// edcf72 rgb(237, 207, 114)
-// edcc61 rgb(237, 204, 97)
-// edc850 rgb(237, 200, 80)
-// edc53f rgb(237, 197, 63)
-// edc22e rgb(237, 194, 46)
-// 3c3a32 rgb(60, 58, 50)
-
+		const backgrounds = Object.freeze({
+			2: Object.freeze({r:0.9333, g: 0.8941, b: 0.8549}),
+			4: Object.freeze({r:0.9294, g: 0.8784, b: 0.7843}),
+			8: Object.freeze({r:0.9490, g: 0.6941, b: 0.4745}),
+			16: Object.freeze({r:0.9607, g: 0.5843, b: 0.3882}),
+			32: Object.freeze({r:0.9647, g: 0.4862, b: 0.3725}),
+			64: Object.freeze({r:0.9647058824,	g: 0.368627451,	b: 0.231372549}),
+			128: Object.freeze({r:0.9294117647,	g: 0.8117647059,	b: 0.4470588235}),
+			256: Object.freeze({r:0.9294117647,	g: 0.8,			b: 0.3803921569}),
+			512: Object.freeze({r:0.9294117647,	g: 0.7843137255,	b: 0.3137254902}),
+			1024: Object.freeze({r:0.9294117647,	g: 0.7725490196,	b: 0.2470588235}),
+			2048: Object.freeze({r:0.9294117647,	g: 0.7607843137,	b: 0.1803921569}),
+			9000: Object.freeze({r:0.2352941176,	g: 0.2274509804,	b: 0.1960784314}),
+		});
 
 		let translations = [];
 		let colors = [];
+		let values = [];
 		tileArray.forEach(tile => {
-			translations.push(50 + ((tile.x / grid.size) * (this.gl.canvas.width-100)));
-			translations.push(50 + ((tile.y / grid.size) * (this.gl.canvas.height-100)));
-			let value = tile.value > 2048 ? 9000 : tile.value;
+			translations.push(this.x + (tile.x / grid.size) * this.tileAndGapWidth * grid.size);
+			translations.push(this.y + (tile.y / grid.size) * this.tileAndGapWidth * grid.size);
+			const value = tile.value > 2048 ? 9000 : tile.value;
 			colors.push(backgrounds[value].r);
 			colors.push(backgrounds[value].g);
 			colors.push(backgrounds[value].b);
+			values.push(String(tile.value));
 		});
 
-		this.animateScene(new Float32Array(translations), new Float32Array(colors));
+		let translationsArr = new Float32Array(translations);
+		this.renderTiles(translationsArr, new Float32Array(colors));
+		this.renderValues(translationsArr, values);
 	}
 
 
-	animateScene(translations, colors) {
+	renderTiles(translationsArr, colors) {
 		let gl = this.gl;
 
 		gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -138,7 +135,7 @@ export default class GameRenderer {
 		//Set translation buffer as active
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.translationsBuffer);
 		//Copy data in
-		gl.bufferData(gl.ARRAY_BUFFER, translations, gl.STATIC_DRAW);
+		gl.bufferData(gl.ARRAY_BUFFER, translationsArr, gl.STATIC_DRAW);
 
 		//Set colors buffer as active
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.backgroundColorsBuffer);
@@ -147,12 +144,14 @@ export default class GameRenderer {
 		
 		//Set the square as active
 		gl.bindVertexArray(this.squareVertexArray);
+		gl.drawArraysInstanced(gl.TRIANGLES, 0, this.squareVertexArrayXYCount, translationsArr.length/2);
+	}
 
-		gl.drawArraysInstanced(gl.TRIANGLES, 0, this.squareVertexArrayXYCount, translations.length/2);
-
-		// window.requestAnimationFrame(function(/*currentTime*/) {
-		// 	this.animateScene();
-		// }.bind(this));
+	renderValues(translationsArr, values) {
+		for (let index = 0; index < translationsArr.length; index+=2) {
+			const textSize = this.textHelper.getSize(values[index/2]);
+			this.textHelper.render(translationsArr[index] + this.tileCenter - textSize.x/2, translationsArr[index+1] - this.tileCenter + textSize.y/2, values[index/2]);	
+		}
 	}
 
 	releaseGL() {

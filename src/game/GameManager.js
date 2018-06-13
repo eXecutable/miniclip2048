@@ -15,6 +15,7 @@ export default class GameManager {
 		this.inputManager.on("move", this.move.bind(this));
 		this.inputManager.on("restart", this.restart.bind(this));
 		this.inputManager.on("keepPlaying", this.keepPlaying.bind(this));
+		this.inputManager.on("goBack", this.goBack.bind(this));
   
 		this.setup();
 	}
@@ -48,9 +49,9 @@ export default class GameManager {
 		return this.over || (this.won && !this.keepPlaying);
 	}
   
-	// Set up the game
+	// Create the game
 	setup() {
-		let previousState = null;//TODO: this.storageManager.getGameState();
+		let previousState = this.storageManager.getGameState();
   
 		// Reload the game from a previous game if present
 		if (previousState) {
@@ -105,13 +106,13 @@ export default class GameManager {
 		}
   
 		
-		this.renderer.update(this.grid, {});
+		this.renderer.update(this.grid, {
 		//TODO: 	score:      this.score,
 		// 	over:       this.over,
 		// 	won:        this.won,
-		// 	bestScore:  this.storageManager.getBestScore(),
+			bestScore:  this.storageManager.getBestScore(),
 		// 	terminated: this.isGameTerminated()
-		// });
+		});
 	}
   
 	// Represent the current game as an object

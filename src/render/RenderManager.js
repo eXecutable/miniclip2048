@@ -13,9 +13,9 @@ export default class RenderManager {
 		this.gl = gl;
 
 		this.shaderHelper = new ShaderHelper(gl);
-		this.gameRenderer = new GameRenderer(gl, this.shaderHelper);
-		this.highscoresRenderer = new HighScoresRenderer(gl, this.shaderHelper);
-		this.menuRenderer = new MenuRenderer(gl, this.shaderHelper);
+		this.gameRenderer = new GameRenderer(gl);
+		this.highscoresRenderer = new HighScoresRenderer(gl);
+		this.menuRenderer = new MenuRenderer(gl);
 	}
 	
 	isLoaded() {

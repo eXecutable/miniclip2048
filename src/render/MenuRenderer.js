@@ -23,11 +23,11 @@ export default class MenuRenderer {
 		gl.clear(gl.COLOR_BUFFER_BIT);
 
 		if(buttonIndex === 0) {
-			this.textHelper.render(100, 100, "gameselected");
+			this.textHelper.render(100, 100, "game selected");
 			this.textHelper.render(100, 300, "highscores");
 		} else {
 			this.textHelper.render(100, 100, "game");
-			this.textHelper.render(100, 300, "highscoresselected");
+			this.textHelper.render(100, 300, "highscores selected");
 		}
 		
 

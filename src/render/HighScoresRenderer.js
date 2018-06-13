@@ -1,6 +1,6 @@
 export default class HighScoresRenderer {
 
-	constructor(gl, shaderHelper){
+	constructor(gl){
 		this.gl = gl;
 
 		

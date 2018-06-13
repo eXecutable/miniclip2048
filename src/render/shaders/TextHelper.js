@@ -196,7 +196,7 @@ export default class TextHelper {
 	}
 
 	makeVerticesForString(fontInfo, s) {
-		let len = s.length;
+		const len = s.length;
 		let numVertices = len * 6;
 		let positions = new Float32Array(numVertices * 2);
 		let texcoords = new Float32Array(numVertices * 2);
@@ -252,17 +252,25 @@ export default class TextHelper {
 				x += fontInfo.spaceWidth;
 			}
 		}
-	
-		// return ArrayBufferViews for the portion of the TypedArrays that were actually used.
+
 		return {
 			arrays: {
 				position: new Float32Array(positions.buffer, 0, offset),
 				texcoord: new Float32Array(texcoords.buffer, 0, offset),
 			},
-			numVertices: numVertices
+			numVertices: offset / 2,
+			width: x,
+			height: fontInfo.letterHeight,
 		};
 	}
-		
+	
+	getSize(text){
+		if(!this.knownStrings[text]) {
+			this.init(text);
+		}
+		return {x: this.knownStrings[text].width, y: this.knownStrings[text].height};
+	}
+
 	/**
 	 * TODO:
 	 *

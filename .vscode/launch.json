@@ -36,8 +36,7 @@
             "url": "http://localhost:8080/",
             "webRoot": "${workspaceRoot}/src",
             "sourceMaps": true,
-            "timeout": 15000,
-            "trace":"verbose"
+            "timeout": 15000
         }
     ]
 }
