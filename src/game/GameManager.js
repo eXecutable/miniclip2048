@@ -107,11 +107,11 @@ export default class GameManager {
   
 		
 		this.renderer.update(this.grid, {
-		//TODO: 	score:      this.score,
-		// 	over:       this.over,
-		// 	won:        this.won,
+			score:      this.score,
+			//TODO: 	over:       this.over,
+			//won:        this.won,
 			bestScore:  this.storageManager.getBestScore(),
-		// 	terminated: this.isGameTerminated()
+			//terminated: this.isGameTerminated()
 		});
 	}
   

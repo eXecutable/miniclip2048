@@ -20,12 +20,21 @@ export default class GameRenderer {
 
 
 		this.x = x || 100;
-		this.y = y || 175;
+		this.y = y || 100;
+		this.yTableOffset = 75;
 		this.tileSquareWidth = tileSquareWidth || 40;
 		this.tileGapWidth = tileGapWidth || 2;
 		this.tileAndGapWidth = 2*this.tileGapWidth + this.tileSquareWidth;
 		this.tileCenter = this.tileSquareWidth / 2;
 		
+		this.highscoreLabel = "highscore: ";
+		this.textHighScoreSize = this.textHelper.getSize(this.highscoreLabel);
+		this.yHighScoreOffset = 0;
+		this.scoreLabel = "score: ";
+		this.textScoreSize = this.textHelper.getSize(this.scoreLabel);
+		this.yScoreOffset = 10;
+
+
 		//Square 4 distinct vertexes, 2 triangles with 2 shared vertices
 		let squareVertexArr = new Float32Array([
 			0, this.tileSquareWidth, 
@@ -61,7 +70,7 @@ export default class GameRenderer {
 		gl.vertexAttribDivisor(this.inColor, 1); // attribute used once per instance
 	}
 	
-	update(grid) {
+	update(grid, scoreDetails) {
 
 		let tileArray = [];
 
@@ -107,7 +116,7 @@ export default class GameRenderer {
 		let values = [];
 		tileArray.forEach(tile => {
 			translations.push(this.x + (tile.x / grid.size) * this.tileAndGapWidth * grid.size);
-			translations.push(this.y + (tile.y / grid.size) * this.tileAndGapWidth * grid.size);
+			translations.push(this.y + this.yTableOffset + (tile.y / grid.size) * this.tileAndGapWidth * grid.size);
 			const value = tile.value > 2048 ? 9000 : tile.value;
 			colors.push(backgrounds[value].r);
 			colors.push(backgrounds[value].g);
@@ -118,6 +127,7 @@ export default class GameRenderer {
 		let translationsArr = new Float32Array(translations);
 		this.renderTiles(translationsArr, new Float32Array(colors));
 		this.renderValues(translationsArr, values);
+		this.renderHighScore(scoreDetails.score, scoreDetails.bestScore);
 	}
 
 
@@ -154,8 +164,18 @@ export default class GameRenderer {
 		}
 	}
 
+	renderHighScore(currentScore, bestScore) {
+		
+		this.textHelper.render(this.x, this.y + this.yHighScoreOffset, this.highscoreLabel);
+		this.textHelper.render(this.x + this.textHighScoreSize.x, this.y + this.yHighScoreOffset, String(bestScore));
+
+		this.textHelper.render(this.x, this.y + this.yScoreOffset, this.scoreLabel);
+		this.textHelper.render(this.x + this.textScoreSize.x, this.y + this.yScoreOffset, String(currentScore));
+	}
+
 	releaseGL() {
 		// -- Delete WebGL resources
+		this.textHelper.releaseGL();
 		this.gl.deleteProgram(this.shaderProgram);
 		this.gl.deleteVertexArray(this.squareVertexArray);
 		this.gl.deleteBuffer(this.squareVertexBuffer);

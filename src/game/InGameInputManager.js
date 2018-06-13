@@ -25,9 +25,8 @@ export default class InGameInputManager{
 			82: 5, //R, restart
 		});
 
-		this.listen();
-
 		this.boundKeydownfunction = this.eventKeyDownFunction.bind(this);
+		this.listen();
 	}
   
 	on(event, callback) {
@@ -66,10 +65,10 @@ export default class InGameInputManager{
 	}
 
 	listen() {
-		document.addEventListener(this.eventKeyDown, this.eventKeyDownFunction.bind(this));
+		document.addEventListener(this.eventKeyDown, this.boundKeydownfunction);
 	}
 
 	unlisten() {
-		document.removeEventListener(this.eventKeyDown, this.eventKeyDownFunction.bind(this));
+		document.removeEventListener(this.eventKeyDown, this.boundKeydownfunction);
 	}
 }
