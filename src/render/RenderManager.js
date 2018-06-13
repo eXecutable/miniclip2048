@@ -18,6 +18,13 @@ export default class RenderManager {
 		this.menuRenderer = new MenuRenderer(gl, this.shaderHelper);
 	}
 	
+	isLoaded() {
+		return this.menuRenderer.isLoaded();
+		//TODO: && this.highscoresRenderer.isLoaded()
+		//&& this.gameRenderer.isLoaded()
+		//&& this.shaderHelper.isLoaded();
+	}
+
 	releaseGL() {
 		if (this.gameRenderer) {
 			this.gameRenderer.releaseGL();

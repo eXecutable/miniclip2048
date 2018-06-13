@@ -16,7 +16,7 @@ export default class GameRenderer {
 
 		// -- Init Buffers
 		//Square 4 distinct vertexes, 2 triangles with 2 shared vertices
-		let squareVertexArray = new Float32Array([
+		let squareVertexArr = new Float32Array([
 			-10, 10, 
 			10,  10,  
 			10, -10,
@@ -26,11 +26,11 @@ export default class GameRenderer {
 			-10, -10
 		]);
 		let vertexNumTriangles = 2;
-		this.squareVertexArrayXYCount = squareVertexArray.length / vertexNumTriangles;
+		this.squareVertexArrayXYCount = squareVertexArr.length / vertexNumTriangles;
 
 		this.squareVertexBuffer = gl.createBuffer();
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.squareVertexBuffer);
-		gl.bufferData(gl.ARRAY_BUFFER, squareVertexArray, gl.STATIC_DRAW);
+		gl.bufferData(gl.ARRAY_BUFFER, squareVertexArr, gl.STATIC_DRAW);
 
 		gl.enableVertexAttribArray(this.inObjVertexXY);
 		gl.vertexAttribPointer(this.inObjVertexXY, vertexNumTriangles, gl.FLOAT, false, 0, 0);

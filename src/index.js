@@ -2,7 +2,6 @@ import LocalStorageManager from "./LocalStorageManager.js";
 import RenderManager from "./render/RenderManager";
 import MainMenuManager from "./menus/MainMenuManager.js";
 
-
 window.addEventListener("load", function(){
 	
 	//Global objects of our game
@@ -14,8 +13,14 @@ window.addEventListener("load", function(){
 	//game entry point
 	window.GAME.mainMenuManager = new MainMenuManager();
 
-	document.getElementById("loading").remove();
+	function isLoadingComplete() {
+		if(!window.GAME.renderManager.isLoaded()) {
+			setTimeout(isLoadingComplete, 100);
+		} else {
+			document.getElementById("loading").remove();
+			window.GAME.mainMenuManager.show();
+		}
+	}
+	setTimeout(isLoadingComplete, 100);
 
-	window.GAME.mainMenuManager.show();
-	
 }, false);

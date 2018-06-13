@@ -13,11 +13,6 @@ export default class MainMenuManager {
 		this.renderer = window.GAME.renderManager.menuRenderer;
 	}
 
-	show() {
-		this.renderer.render(this.buttonsIdx.start);
-		this.listen();
-	}
-
 	listen() {
 		const map = Object.freeze({
 			38: 0, // Up
@@ -45,7 +40,7 @@ export default class MainMenuManager {
 					event.preventDefault();
 					
 					switch (mapped) {
-					case 4:
+					case 4://Enter
 						this.startGame();
 						break;
 					//TODO: select buttons
@@ -62,6 +57,18 @@ export default class MainMenuManager {
 
 	unlisten() {
 		document.removeEventListener("keydown", this.eventKeyDownFunction);
+	}
+
+	
+	show() {
+		this.update();
+		this.listen();
+	}
+
+	update() {
+		this.renderer.render(this.buttonsIdx.start);
+		
+		//window.requestAnimationFrame(this.update.bind(this));
 	}
 
 	startGame() {
