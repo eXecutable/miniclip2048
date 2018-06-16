@@ -1,10 +1,11 @@
-import TilesHelper from "./shaders/TilesHelper.js";
-import TextHelper from "./shaders/TextHelper.js";
+import Renderer from "../render/Renderer.js";
+import TilesHelper from "../render/shaders/TilesHelper.js";
+import TextHelper from "../render/shaders/TextHelper.js";
 
-export default class GameRenderer {
+export default class GameRenderer extends Renderer {
 
 	constructor(gl, x, y, tileSquareWidth, tileGapWidth){
-		this.gl = gl;
+		super(gl);
 
 		this.tilesHelper = new TilesHelper(gl);
 		this.textHelper = new TextHelper(gl);
@@ -68,6 +69,10 @@ export default class GameRenderer {
 		gl.enableVertexAttribArray(this.inColor);
 		gl.vertexAttribPointer(this.inColor, 3, gl.FLOAT, false, 0, 0);
 		gl.vertexAttribDivisor(this.inColor, 1); // attribute used once per instance
+	}
+	
+	isLoaded() {
+		return true;
 	}
 	
 	update(grid, scoreDetails) {

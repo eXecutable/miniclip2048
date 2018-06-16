@@ -1,9 +1,10 @@
-import TextHelper from "./shaders/TextHelper.js";
+import Renderer from "../render/Renderer.js";
+import TextHelper from "../render/shaders/TextHelper.js";
 
-export default class MenuRenderer {
+export default class MainMenuRenderer extends Renderer {
 
 	constructor(gl){
-		this.gl = gl;
+		super(gl);
 
 		this.textHelper = new TextHelper(gl);
 
@@ -52,6 +53,6 @@ export default class MenuRenderer {
 	}
 
 	releaseGL() {
-
+		this.textHelper.releaseGL();
 	}
 }

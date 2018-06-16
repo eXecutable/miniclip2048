@@ -1,7 +1,7 @@
 import ShaderHelper from "./shaders/ShaderHelper.js";
-import GameRenderer from "./GameRenderer.js";
-import HighScoresRenderer from "./HighScoresRenderer.js";
-import MenuRenderer from "./MenuRenderer.js";
+import GameRenderer from "../game/GameRenderer.js";
+import HighScoresRenderer from "../menus/HighScoresRenderer.js";
+import MainMenuRenderer from "../menus/MainMenuRenderer";
 
 export default class RenderManager {
 
@@ -10,35 +10,33 @@ export default class RenderManager {
 		if (!gl) {
 			throw "Webgl2 not found.";
 		}
-		this.gl = gl;
+		this.shaderHelper = Object.freeze(new ShaderHelper(gl));
 
-		this.shaderHelper = new ShaderHelper(gl);
-		this.gameRenderer = new GameRenderer(gl);
-		this.highscoresRenderer = new HighScoresRenderer(gl);
-		this.menuRenderer = new MenuRenderer(gl);
+		this.gameRenderer = Object.freeze(new GameRenderer(gl));
+		this.highscoresRenderer = Object.freeze(new HighScoresRenderer(gl));
+		this.menuRenderer = Object.freeze(new MainMenuRenderer(gl));
+
+		this.renderers = [this.menuRenderer, this.highscoresRenderer, this.gameRenderer];
 	}
 	
 	isLoaded() {
-		return this.menuRenderer.isLoaded();
-		//TODO: && this.highscoresRenderer.isLoaded()
-		//&& this.gameRenderer.isLoaded()
-		//&& this.shaderHelper.isLoaded();
+		for (let index = 0; index < this.renderers.length; index++) {
+			const renderer = this.renderers[index];
+			if (!renderer.isLoaded()) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	releaseGL() {
-		if (this.gameRenderer) {
-			this.gameRenderer.releaseGL();
-			this.gameRenderer = null;
+		for (let index = 0; index < this.renderers.length; index++) {
+			const renderer = this.renderers[index];
+			renderer.releaseGL();
 		}
-
-		if (this.highscoresRenderer) {
-			this.highscoresRenderer.releaseGL();
-			this.highscoresRenderer = null;
-		}
-
-		if (this.menuRenderer) {
-			this.menuRenderer.releaseGL();
-			this.menuRenderer = null;
-		}
+		this.renderers = null;
+		this.gameRenderer =  null;
+		this.highscoresRenderer = null;
+		this.menuRenderer = null;
 	}
 }

@@ -81,17 +81,32 @@ export default class MainMenuManager {
 		
 		//window.requestAnimationFrame(this.update.bind(this));
 	}
-
+	
+	/**
+	 *
+	 *
+	 * @memberof MainMenuManager
+	 */
 	startGame() {
 		this.unlisten();
 		new GameManager(4).show(this);
 	}
 
+	/**
+	 *
+	 *
+	 * @memberof MainMenuManager
+	 */
 	showHighScores() {
 		this.unlisten();
 		new HighScoreManager().show(this);
 	}
 
+	/**
+	 *
+	 *
+	 * @memberof MainMenuManager
+	 */
 	exit() {
 		window.GAME.renderManager.releaseGL();
 	}
