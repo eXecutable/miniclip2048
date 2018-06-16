@@ -46,15 +46,14 @@ export default class GameRenderer extends Renderer {
 			this.tileSquareWidth, 0, 
 			0, 0
 		]);
-		let vertexNumTriangles = 2;
-		this.squareVertexArrayXYCount = squareVertexArr.length / vertexNumTriangles;
+		this.numberOfVertexes = squareVertexArr.length / 2;
 
 		this.squareVertexBuffer = gl.createBuffer();
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.squareVertexBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, squareVertexArr, gl.STATIC_DRAW);
 
 		gl.enableVertexAttribArray(this.inObjVertexXY);
-		gl.vertexAttribPointer(this.inObjVertexXY, vertexNumTriangles, gl.FLOAT, false, 0, 0);
+		gl.vertexAttribPointer(this.inObjVertexXY, 2, gl.FLOAT, false, 0, 0);
 
 		// -- Init Translations buffer
 		this.translationsBuffer = gl.createBuffer();
@@ -159,7 +158,7 @@ export default class GameRenderer extends Renderer {
 		
 		//Set the square as active
 		gl.bindVertexArray(this.squareVertexArray);
-		gl.drawArraysInstanced(gl.TRIANGLES, 0, this.squareVertexArrayXYCount, translationsArr.length/2);
+		gl.drawArraysInstanced(gl.TRIANGLES, 0, this.numberOfVertexes, translationsArr.length/2);
 	}
 
 	renderValues(translationsArr, values) {
@@ -178,6 +177,10 @@ export default class GameRenderer extends Renderer {
 		this.textHelper.render(this.x + this.textScoreSize.x, this.y + this.yScoreOffset, String(currentScore));
 	}
 
+	/**
+	 * Release WebGL resources used. Invalidates object, should be called before unreferencing.
+	 * @memberof GameRenderer
+	 */
 	releaseGL() {
 		// -- Delete WebGL resources
 		this.textHelper.releaseGL();

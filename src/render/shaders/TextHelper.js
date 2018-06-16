@@ -3,10 +3,10 @@ import ShaderHelper from "./ShaderHelper";
 
 export default class TextHelper {
 	/**
-	 *Creates an instance of TextHelper.
-	* @param {*} gl
-	* @memberof TextHelper
-	*/
+	 * Creates an instance of TextHelper.
+	 * @param {WebGLRenderingContext} gl
+	 * @memberof TextHelper
+	 */
 	constructor(gl) {
 		this.gl = gl;
 		if(!gl){
@@ -17,7 +17,8 @@ export default class TextHelper {
 		
 		this.locations = Object.freeze({
 			/**
-			 * TODO:
+			 * Returns the location of the vertex in buffer
+			 * @returns {Integer} The location
 			 */
 			POSITION_LOCATION: function() { return 0; },
 			/**
@@ -27,7 +28,8 @@ export default class TextHelper {
 				return gl.getUniformLocation(program, "inColor");
 			},
 			/**
-			 * TODO:
+			 * Returns the location of the translation position uniform
+			 * @returns {Integer} The location
 			 */
 			TRANSLATE_LOCATION:  function(program) {
 				return gl.getUniformLocation(program, "translate");
@@ -120,22 +122,20 @@ export default class TextHelper {
 		gl.bindTexture(gl.TEXTURE_2D, this.glyphTex);
 		// Fill the texture with a 1x1 blue pixel, to use as a no crash fallback while loading the image
 		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 255, 255]));
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
 		// Asynchronously load an image
-		let image = new Image();
-		image.src = fontImage;
-		image.addEventListener("load", function() {
-			// Now that the image has loaded copy it to the texture.
-			gl.bindVertexArray(this.textVertexArray);
-			gl.bindTexture(gl.TEXTURE_2D, this.glyphTex);
-			gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		this.image = new Image();
+		this.image.addEventListener("load", () => {
+			if (this.image.naturalWidth === 0) {
+				console.error( this.image.src + " image failed to load.");
+				return;
+			}
 
 			this.loaded = true;
-		}.bind(this));
+		});
+		this.image.src = fontImage;
 
 		//for 8x8-font.png
 		this.fontInfo = Object.freeze({
@@ -283,14 +283,14 @@ export default class TextHelper {
 	}
 
 	/**
-	 *
-	 *
-	 * @param {*} x
-	 * @param {*} y
-	 * @param {*} text
+	 * Draw the text into the canvas
+	 * @param {Number} x Target position pixels from the left of the canvas
+	 * @param {Number} y Target position pixels from the top of the canvas
+	 * @param {Sring} text String of caracters to be rendered
+	 * @param {Array} tintColor RGBA vec4 color, with Float32s between 0 and 1
 	 * @memberof TextHelper
 	 */
-	render(x, y, text) {
+	render(x, y, text, tintColor) {
 		let gl = this.gl;
 
 		if(!this.knownStrings[text]) {
@@ -308,12 +308,16 @@ export default class TextHelper {
 		//x,y in canvas space where the text should be placed
 		gl.uniform2fv(this.inTranslationXY, [x, y]);
 		//set tint color
-		gl.uniform4fv(this.inColor, [1.0, 1.0, 1.0, 1.0]);//TODO: paremeterize
+		gl.uniform4fv(this.inColor, tintColor || [1.0, 1.0, 1.0, 1.0]);
 		
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, this.knownStrings[text].arrays.position, gl.DYNAMIC_DRAW);
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.textureCoordsBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, this.knownStrings[text].arrays.texcoord, gl.DYNAMIC_DRAW);
+
+		gl.bindTexture(gl.TEXTURE_2D, this.glyphTex);
+		gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.image);
 
 		// Draw the text
 		gl.drawArrays(gl.TRIANGLES, 0, this.knownStrings[text].numVertices);
@@ -321,6 +325,10 @@ export default class TextHelper {
 		gl.disable(gl.BLEND);
 	}
 
+	/**
+	 * Release WebGL resources used. Invalidates object, should be called before unreferencing.
+	 * @memberof TextHelper
+	 */
 	releaseGL(){
 		this.gl.deleteBuffer(this.vertexPositionBuffer);
 		this.gl.deleteBuffer(this.textureCoordsBuffer);

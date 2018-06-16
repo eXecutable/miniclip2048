@@ -14,6 +14,10 @@ export default class HighScoresRenderer extends Renderer {
 
 	}
 
+	/**
+	 * Release WebGL resources used. Invalidates object, should be called before unreferencing.
+	 * @memberof HighScoresRenderer
+	 */
 	releaseGL() {
 		
 	}

@@ -7,9 +7,9 @@
 export default class Renderer {
 	/**
 	 *Creates an instance of Renderer.
-	* @param {WebGLObject} gl
-	* @memberof Renderer
-	*/
+	 * @param {WebGLRenderingContext} gl
+	 * @memberof Renderer
+	 */
 	constructor(gl){	
 		this.gl = gl;
 	}

@@ -2,6 +2,11 @@ import ShaderHelper from "./ShaderHelper";
 
 export default class TilesHelper {
 
+	/**
+	 * Creates an instance of TilesHelper.
+	 * @param {WebGLRenderingContext} gl
+	 * @memberof TilesHelper
+	 */
 	constructor(gl) {
 		this.gl = gl;
 		if(!gl){
@@ -9,7 +14,8 @@ export default class TilesHelper {
 		}
 		this.locations = Object.freeze({
 			/**
-			 * TODO:
+			 * Returns the location of the vertex in buffer
+			 * @returns {Integer} The location
 			 */
 			POSITION_LOCATION: function() { return 0; },
 			/**

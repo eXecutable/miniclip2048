@@ -4,7 +4,11 @@ import HighScoresRenderer from "../menus/HighScoresRenderer.js";
 import MainMenuRenderer from "../menus/MainMenuRenderer";
 
 export default class RenderManager {
-
+	
+	/**
+	 *Creates an instance of RenderManager.
+	* @memberof RenderManager
+	*/
 	constructor(){
 		let gl = document.getElementById("canvas").getContext("webgl2");
 		if (!gl) {
@@ -18,7 +22,12 @@ export default class RenderManager {
 
 		this.renderers = [this.menuRenderer, this.highscoresRenderer, this.gameRenderer];
 	}
-	
+
+	/**
+	 * Are we ready to render?
+	 * @returns {Boolean} True if all renderers are ready.
+	 * @memberof RenderManager
+	 */
 	isLoaded() {
 		for (let index = 0; index < this.renderers.length; index++) {
 			const renderer = this.renderers[index];
@@ -29,6 +38,10 @@ export default class RenderManager {
 		return true;
 	}
 
+	/**
+	 * Release WebGL resources of all renderers.
+	 * @memberof GameRenderer
+	 */
 	releaseGL() {
 		for (let index = 0; index < this.renderers.length; index++) {
 			const renderer = this.renderers[index];
