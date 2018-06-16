@@ -22,13 +22,16 @@ export default class TextHelper {
 			 */
 			POSITION_LOCATION: function() { return 0; },
 			/**
-			 * TODO:
+			 * Returns the location of tint color vec4 uniform
+			 * @param {WebGLProgram} program the instance to find in
+			 * @returns {Integer} The location
 			 */
 			COLOR_LOCATION: function(program) {
 				return gl.getUniformLocation(program, "inColor");
 			},
 			/**
 			 * Returns the location of the translation position uniform
+			 * @param {WebGLProgram} program the instance to find in
 			 * @returns {Integer} The location
 			 */
 			TRANSLATE_LOCATION:  function(program) {
@@ -191,26 +194,37 @@ export default class TextHelper {
 		this.knownStrings = {};
 	}
 
+	/**
+	 * Query if the text atlas is loaded.
+	 * @return {Boolean} true if it's ready to render
+	 * @memberof TextHelper
+	 */
 	isLoaded(){
 		return this.loaded;
 	}
 
-	makeVerticesForString(fontInfo, s) {
+	/**
+	 * Calculate the vertex position and UV coordinates for a given text.
+	 * @param {String} s The text to display
+	 * @returns {Object} Vertex and texture buffers
+	 * @memberof TextHelper
+	 */
+	makeVerticesForString(s) {
 		const len = s.length;
 		let numVertices = len * 6;
 		let positions = new Float32Array(numVertices * 2);
 		let texcoords = new Float32Array(numVertices * 2);
 		let offset = 0;
 		let x = 0;
-		let maxX = fontInfo.textureWidth;
-		let maxY = fontInfo.textureHeight;
+		let maxX = this.fontInfo.textureWidth;
+		let maxY = this.fontInfo.textureHeight;
 		for (let ii = 0; ii < len; ++ii) {
 			let letter = s[ii];
-			let glyphInfo = fontInfo.glyphInfos[letter];
+			let glyphInfo = this.fontInfo.glyphInfos[letter];
 			if (glyphInfo) {
 				let x2 = x + glyphInfo.width;
 				let u1 = glyphInfo.x / maxX;
-				let v1 = (glyphInfo.y + fontInfo.letterHeight - 1) / maxY;
+				let v1 = (glyphInfo.y + this.fontInfo.letterHeight - 1) / maxY;
 				let u2 = (glyphInfo.x + glyphInfo.width - 1) / maxX;
 				let v2 = glyphInfo.y / maxY;
 	
@@ -226,12 +240,12 @@ export default class TextHelper {
 				texcoords[offset + 3] = v1;
 	
 				positions[offset + 4] = x;
-				positions[offset + 5] = fontInfo.letterHeight;
+				positions[offset + 5] = this.fontInfo.letterHeight;
 				texcoords[offset + 4] = u1;
 				texcoords[offset + 5] = v2;
 	
 				positions[offset + 6] = x;
-				positions[offset + 7] = fontInfo.letterHeight;
+				positions[offset + 7] = this.fontInfo.letterHeight;
 				texcoords[offset + 6] = u1;
 				texcoords[offset + 7] = v2;
 	
@@ -241,15 +255,15 @@ export default class TextHelper {
 				texcoords[offset + 9] = v1;
 	
 				positions[offset + 10] = x2;
-				positions[offset + 11] = fontInfo.letterHeight;
+				positions[offset + 11] = this.fontInfo.letterHeight;
 				texcoords[offset + 10] = u2;
 				texcoords[offset + 11] = v2;
 	
-				x += glyphInfo.width + fontInfo.spacing;
+				x += glyphInfo.width + this.fontInfo.spacing;
 				offset += 12;
 			} else {
 				//Don't have this character so just advance
-				x += fontInfo.spaceWidth;
+				x += this.fontInfo.spaceWidth;
 			}
 		}
 
@@ -260,25 +274,30 @@ export default class TextHelper {
 			},
 			numVertices: offset / 2,
 			width: x,
-			height: fontInfo.letterHeight,
+			height: this.fontInfo.letterHeight,
 		};
 	}
-	
+	/**
+	 * Get the size of target text in pixels
+	 * @param {String} text target to get the width and height
+	 * @returns {Object} x and y for width and height of the texture 
+	 * @memberof TextHelper
+	 */
 	getSize(text){
-		if(!this.knownStrings[text]) {
+		if(this.knownStrings[text] === undefined) {
 			this.init(text);
 		}
 		return {x: this.knownStrings[text].width, y: this.knownStrings[text].height};
 	}
 
 	/**
-	 * TODO:
-	 *
+	 * Cache the calculation of vertex and uv for this text
+	 * @param {String} text target text to initialize
 	 * @memberof TextHelper
 	 */
 	init(text) {
 		if(this.knownStrings[text] === undefined){
-			this.knownStrings[text] = this.makeVerticesForString(this.fontInfo, text);
+			this.knownStrings[text] = this.makeVerticesForString(text);
 		}
 	}
 

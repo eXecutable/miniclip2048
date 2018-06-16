@@ -1,12 +1,12 @@
 export default class InGameInputManager{
-
+	/**
+	 * Creates an instance of InGameInputManager, also registers on event listeners.
+	 * @memberof InGameInputManager
+	 */
 	constructor() {
 		this.events = {};
 
 		this.eventKeyDown		= "keydown";
-		this.eventTouchstart    = "touchstart";
-		this.eventTouchmove     = "touchmove";
-		this.eventTouchend      = "touchend";
 
 		this.map = Object.freeze({
 			38: 0, // Up
@@ -28,14 +28,26 @@ export default class InGameInputManager{
 		this.boundKeydownfunction = this.eventKeyDownFunction.bind(this);
 		this.listen();
 	}
-  
+
+	/**
+	 * Register a callback on an event
+	 * @param {String} event name of the event
+	 * @param {Function} callback function to be called once the named event is fired
+	 * @memberof InGameInputManager
+	 */
 	on(event, callback) {
 		if (!this.events[event]) {
 			this.events[event] = [];
 		}
 		this.events[event].push(callback);
 	}
-  
+
+	/**
+	 * Call all callbacks registered on an event (by order of registration).
+	 * @param {String} event name of the event
+	 * @param {*} data payload of the event
+	 * @memberof InGameInputManager
+	 */
 	emit(event, data) {
 		let callbacks = this.events[event];
 		if (callbacks) {
@@ -45,7 +57,11 @@ export default class InGameInputManager{
 		}
 	}
   
-	// Respond to direction keys
+	/**
+	 * Callback registered on key down event.
+	 * @param {KeyboardEvent} event
+	 * @memberof InGameInputManager
+	 */
 	eventKeyDownFunction(event) {
 		let modifiers = event.altKey || event.ctrlKey || event.metaKey || event.shiftKey;
 		let mapped    = this.map[event.which];
@@ -63,11 +79,17 @@ export default class InGameInputManager{
 			}
 		}
 	}
-
+	/**
+	 * Register on document event keydown
+	 * @memberof InGameInputManager
+	 */
 	listen() {
 		document.addEventListener(this.eventKeyDown, this.boundKeydownfunction);
 	}
-
+	/**
+	 * Stop listening to document event keydown
+	 * @memberof InGameInputManager
+	 */
 	unlisten() {
 		document.removeEventListener(this.eventKeyDown, this.boundKeydownfunction);
 	}

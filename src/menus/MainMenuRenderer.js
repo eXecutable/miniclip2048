@@ -4,7 +4,11 @@ import TextHelper from "../render/shaders/TextHelper.js";
 import SquareTextureHelper from "../render/shaders/SquareTextureHelper.js";
 
 export default class MainMenuRenderer extends Renderer {
-
+	/**
+	 *Creates an instance of MainMenuRenderer.
+	* @param {WebGLRenderingContext} gl
+	* @memberof MainMenuRenderer
+	*/
 	constructor(gl){
 		super(gl);
 
@@ -15,14 +19,23 @@ export default class MainMenuRenderer extends Renderer {
 		this.backgroundShader = new SquareTextureHelper(gl, backgroundImage);
 	}
 	
+	/**
+	 * Query if the renderer is ready to render.
+	 * @return {Boolean} true if it's ready to render
+	 * @memberof MainMenuRenderer
+	 */
 	isLoaded() {
 		return this.textHelper.isLoaded() && this.backgroundShader.isLoaded();
 	}
 
+	/**
+	 * Draw main menu
+	 * @param {Number} buttonIndex
+	 * @memberof MainMenuRenderer
+	 */
 	render(buttonIndex) {
-		let gl = this.gl;
 
-		gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+		this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
 
 		this.backgroundShader.render(0,0);
 
@@ -33,12 +46,11 @@ export default class MainMenuRenderer extends Renderer {
 			this.textHelper.render(100, 200, "game");
 			this.textHelper.render(100, 300, "highscores selected");
 		}
-
 	}
 
 	/**
 	 * Release WebGL resources used. Invalidates object, should be called before unreferencing.
-	 * @memberof GameRenderer
+	 * @memberof MainMenuRenderer
 	 */
 	releaseGL() {
 		this.textHelper.releaseGL();

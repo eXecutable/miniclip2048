@@ -106,7 +106,7 @@ export default class GameManager {
 		}
   
 		
-		this.renderer.update(this.grid, {
+		this.renderer.updateGameState(this.grid, {
 			score:      this.score,
 			//TODO: 	over:       this.over,
 			//won:        this.won,

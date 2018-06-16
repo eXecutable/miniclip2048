@@ -120,13 +120,10 @@ export default class SquareTextureHelper {
 		gl.enableVertexAttribArray(this.textureCoordenatesUV);
 		gl.vertexAttribPointer(this.textureCoordenatesUV, 2, gl.FLOAT, false, 0, 0);
 
-		// Create a texture.
 		this.texture = gl.createTexture();
 		gl.bindTexture(gl.TEXTURE_2D, this.texture);
 		// Fill the texture with a 1x1 pixel, to use as a no crash fallback while loading the image
 		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 255, 0, 255]));
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);//Remove mip maps, go nearest since we are aiming for pixel perfect
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 		//Asynchronously load an image
@@ -155,6 +152,11 @@ export default class SquareTextureHelper {
 		this.image.src = imageSrc;
 	}
 
+	/**
+	 * Query if the image is loaded.
+	 * @return {Boolean} true if it's ready to render
+	 * @memberof SquareTextureHelper
+	 */
 	isLoaded(){
 		return this.loaded;
 	}
@@ -178,7 +180,7 @@ export default class SquareTextureHelper {
 
 	/**
 	 * Release WebGL resources used. Invalidates object, should be called before unreferencing.
-	 * @memberof TextHelper
+	 * @memberof SquareTextureHelper
 	 */
 	releaseGL(){
 
