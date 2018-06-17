@@ -1,6 +1,6 @@
 import LocalStorageManager from "./LocalStorageManager.js";
 import RenderManager from "./render/RenderManager";
-import MainMenuManager from "./menus/MainMenuManager.js";
+import MainMenuScreen from "./menus/MainMenuScreen.js";
 
 window.addEventListener("load", function(){
 	
@@ -11,14 +11,14 @@ window.addEventListener("load", function(){
 	};
 
 	//game entry point
-	window.GAME.mainMenuManager = new MainMenuManager();
+	window.GAME.MainMenuScreen = new MainMenuScreen();
 
 	function isLoadingComplete() {
 		if(!window.GAME.renderManager.isLoaded()) {
 			setTimeout(isLoadingComplete, 100);
 		} else {
 			document.getElementById("loading").remove();
-			window.GAME.mainMenuManager.show();
+			window.GAME.MainMenuScreen.show();
 		}
 	}
 	setTimeout(isLoadingComplete, 100);

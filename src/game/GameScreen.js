@@ -2,7 +2,7 @@ import Grid from "./Grid.js";
 import Tile from "./Tile.js";
 import InGameInputManager from "./InGameInputManager";
 
-export default class GameManager {
+export default class GameScreen {
     
 	constructor(size) {
 		this.size           = size; // Size of the grid
@@ -16,22 +16,29 @@ export default class GameManager {
 		this.inputManager.on("restart", this.restart.bind(this));
 		this.inputManager.on("keepPlaying", this.keepPlaying.bind(this));
 		this.inputManager.on("goBack", this.goBack.bind(this));
-  
-		this.setup();
 	}
   
 	//TODO: DerivefromScreenManager
 	show(previousScreen) {
 		this.previousScreen = previousScreen;
-		//TODO: this.storage.get
+		
+		this.setup();
+		this.inputManager.listen();
 	}
 
+	/**
+	 * Stop answering keys and display the previous screen. Callback on "goBack" input
+	 * @memberof GameScreen
+	 */
 	goBack(){
 		this.inputManager.unlisten();
 		this.previousScreen.show();
 	}
 
-	// Restart the game
+	/**
+	 * Restart the game. Callback on "restart" input
+	 * @memberof GameScreen
+	 */
 	restart() {
 		this.storageManager.clearGameState();
 		//TODO: this.actuator.continueGame(); // Clear the game won/lost message
@@ -46,7 +53,7 @@ export default class GameManager {
   
 	// Return true if the game is lost, or has won and the user hasn't kept playing
 	isGameTerminated() {
-		return this.over || (this.won && !this.keepPlaying);
+		return this.over;
 	}
   
 	// Create the game
@@ -54,18 +61,16 @@ export default class GameManager {
 		let previousState = this.storageManager.getGameState();
   
 		// Reload the game from a previous game if present
-		if (previousState) {
+		if (previousState && !previousState.over) {
 			this.grid        = new Grid(previousState.grid.size, previousState.grid.cells); // Reload grid
 			this.score       = previousState.score;
 			this.over        = previousState.over;
 			this.won         = previousState.won;
-			this.keepPlaying = previousState.keepPlaying;
 		} else {
 			this.grid        = new Grid(this.size);
 			this.score       = 0;
 			this.over        = false;
 			this.won         = false;
-			this.keepPlaying = false;
   
 			// Add the initial tiles
 			this.addStartTiles();
@@ -75,17 +80,23 @@ export default class GameManager {
 		this.actuate();
 	}
   
-	// Set up the initial tiles to start the game with
+	/**
+	 * Set up the initial tiles to start the game with
+	 * @memberof GameScreen
+	 */
 	addStartTiles() {
 		for (let i = 0; i < this.startTiles; i++) {
 			this.addRandomTile();
 		}
 	}
   
-	// Adds a tile in a random position
+	/**
+	 * Adds a tile in a random position
+	 * @memberof GameScreen
+	 */
 	addRandomTile() {
 		if (this.grid.cellsAvailable()) {
-			let value = Math.random() < 0.9 ? 2 : 4;
+			let value = Math.random() < 0.9 ? 1024 : 4;
 			let tile = new Tile(this.grid.randomAvailableCell(), value);
   
 			this.grid.insertTile(tile);
@@ -104,25 +115,26 @@ export default class GameManager {
 		} else {
 			this.storageManager.setGameState(this.serialize());
 		}
-  
-		
+
 		this.renderer.updateGameState(this.grid, {
 			score:      this.score,
-			//TODO: 	over:       this.over,
-			//won:        this.won,
 			bestScore:  this.storageManager.getBestScore(),
-			//terminated: this.isGameTerminated()
+			over:       this.over,
+			won:        this.won,
 		});
 	}
   
-	// Represent the current game as an object
+	/**
+	 * Get data to persist. Read-only method.
+	 * @returns {Object} With current position and value
+	 * @memberof Tile
+	 */
 	serialize() {
 		return {
 			grid:        this.grid.serialize(),
 			score:       this.score,
 			over:        this.over,
-			won:         this.won,
-			keepPlaying: this.keepPlaying
+			won:         this.won
 		};
 	}
   
@@ -147,13 +159,12 @@ export default class GameManager {
 	// Move tiles on the grid in the specified direction
 	move(direction) {
 		// 0: up, 1: right, 2: down, 3: left
-		let self = this;
-  
+
 		if (this.isGameTerminated()) return; // Don't do anything if the game's over
   
 		let cell, tile;
   
-		let vector     = GameManager.getVector(direction);
+		let vector     = GameScreen.getVector(direction);
 		let traversals = this.buildTraversals(vector);
 		let moved      = false;
   
@@ -161,35 +172,35 @@ export default class GameManager {
 		this.prepareTiles();
   
 		// Traverse the grid in the right direction and move tiles
-		traversals.x.forEach(function (x) {
-			traversals.y.forEach(function (y) {
+		traversals.x.forEach((x) => {
+			traversals.y.forEach((y) => {
 				cell = { x: x, y: y };
-				tile = self.grid.cellContent(cell);
+				tile = this.grid.cellContent(cell);
   
 				if (tile) {
-					let positions = self.findFarthestPosition(cell, vector);
-					let nextTile  = self.grid.cellContent(positions.next);
+					let positions = this.findFarthestPosition(cell, vector);
+					let nextTile  = this.grid.cellContent(positions.next);
   
 					if (nextTile && nextTile.value === tile.value && !nextTile.mergedFrom) {
 						let merged = new Tile(positions.next, tile.value * 2);
 						merged.mergedFrom = [tile, nextTile];
   
-						self.grid.insertTile(merged);
-						self.grid.removeTile(tile);
+						this.grid.insertTile(merged);
+						this.grid.removeTile(tile);
   
 						// Converge the two tiles' positions
 						tile.updatePosition(positions.next);
   
 						// Update the score
-						self.score += merged.value;
+						this.score += merged.value;
   
 						// The mighty 2048 tile
-						if (merged.value === 2048) self.won = true;
+						if (merged.value === 2048) this.won = true;
 					} else {
-						self.moveTile(tile, positions.farthest);
+						this.moveTile(tile, positions.farthest);
 					}
   
-					if (!GameManager.positionsEqual(cell, tile)) {
+					if (!GameScreen.positionsEqual(cell, tile)) {
 						moved = true; // The tile moved from its original cell!
 					}
 				}
@@ -207,7 +218,13 @@ export default class GameManager {
 		}
 	}
   
-	// Get the vector representing the chosen direction
+	/**
+	 * Get the vector representing the chosen direction
+	 * @static
+	 * @param {Number} direction 0-Up, 1-Right, 2-Down, 3-Left
+	 * @returns
+	 * @memberof GameScreen
+	 */
 	static getVector(direction) {
 		// Vectors representing tile movement
 		const map = Object.freeze({
@@ -219,7 +236,12 @@ export default class GameManager {
 		return map[direction];
 	}
   
-	// Build a list of positions to traverse in the right order
+	/**
+	 * Build a list of positions to traverse in the right order
+	 * @param {Object} vector x and y unitary vector
+	 * @returns {Object} traversals, x and y arrays
+	 * @memberof GameScreen
+	 */
 	buildTraversals(vector) {
 		let traversals = { x: [], y: [] };
   
@@ -249,28 +271,35 @@ export default class GameManager {
 			next: cell // Used to check if a merge is required
 		};
 	}
-  
+	
+	/**
+	 * Check if it is Game Over
+	 * @returns true if there are available plays
+	 * @memberof GameScreen
+	 */
 	movesAvailable() {
 		return this.grid.cellsAvailable() || this.tileMatchesAvailable();
 	}
   
-	// Check for available matches between tiles (more expensive check)
+	/**
+	 * Check for available matches between tiles and their neighbours.
+	 * @returns true if there are tiles that can be merged with their neighbours
+	 * @memberof GameScreen
+	 */
 	tileMatchesAvailable() {
-		let self = this;
-  
 		let tile;
-  
+		//For every tile
 		for (let x = 0; x < this.size; x++) {
 			for (let y = 0; y < this.size; y++) {
 				tile = this.grid.cellContent({ x: x, y: y });
-  
 				if (tile) {
 					for (let direction = 0; direction < 4; direction++) {
-						let vector = GameManager.getVector(direction);
+						//For all directions
+						let vector = GameScreen.getVector(direction);
 						let cell   = { x: x + vector.x, y: y + vector.y };
-  
-						let other  = self.grid.cellContent(cell);
-  
+						let other  = this.grid.cellContent(cell);
+						
+						//Try to find a mergable tile
 						if (other && other.value === tile.value) {
 							return true; // These two tiles can be merged
 						}
@@ -278,10 +307,17 @@ export default class GameManager {
 				}
 			}
 		}
-  
 		return false;
 	}
-  
+
+	/**
+	 * Helper function to compare positions
+	 * @static
+	 * @param {Object} first x and y position
+	 * @param {Object} second x and y position
+	 * @returns True if the position's Numbers are equal
+	 * @memberof GameScreen
+	 */
 	static positionsEqual(first, second) {
 		return first.x === second.x && first.y === second.y;
 	}

@@ -44,18 +44,18 @@ export default class TilesHelper {
 
 		//Value to backgorund color converter
 		this.backgrounds = Object.freeze({
-			2: Object.freeze({r:0.9333, g: 0.8941, b: 0.8549}),
-			4: Object.freeze({r:0.9294, g: 0.8784, b: 0.7843}),
-			8: Object.freeze({r:0.9490, g: 0.6941, b: 0.4745}),
-			16: Object.freeze({r:0.9607, g: 0.5843, b: 0.3882}),
-			32: Object.freeze({r:0.9647, g: 0.4862, b: 0.3725}),
-			64: Object.freeze({r:0.9647058824,	g: 0.368627451,	b: 0.231372549}),
-			128: Object.freeze({r:0.9294117647,	g: 0.8117647059,	b: 0.4470588235}),
-			256: Object.freeze({r:0.9294117647,	g: 0.8,			b: 0.3803921569}),
-			512: Object.freeze({r:0.9294117647,	g: 0.7843137255,	b: 0.3137254902}),
-			1024: Object.freeze({r:0.9294117647,	g: 0.7725490196,	b: 0.2470588235}),
-			2048: Object.freeze({r:0.9294117647,	g: 0.7607843137,	b: 0.1803921569}),
-			9000: Object.freeze({r:0.2352941176,	g: 0.2274509804,	b: 0.1960784314}),
+			2: Object.freeze([0.9333, 0.8941, 0.8549]),
+			4: Object.freeze([0.9294, 0.8784, 0.7843]),
+			8: Object.freeze([0.9490, 0.6941, 0.4745]),
+			16: Object.freeze([0.9607, 0.5843, 0.3882]),
+			32: Object.freeze([0.9647, 0.4862, 0.3725]),
+			64: Object.freeze([0.9647058824,	0.368627451,	0.231372549]),
+			128: Object.freeze([0.9294117647,	0.8117647059,	0.4470588235]),
+			256: Object.freeze([0.9294117647,	0.8,			0.3803921569]),
+			512: Object.freeze([0.9294117647,	0.7843137255,	0.3137254902]),
+			1024: Object.freeze([0.9294117647,	0.7725490196,	0.2470588235]),
+			2048: Object.freeze([0.9294117647,	0.7607843137,	0.1803921569]),
+			9000: Object.freeze([0.2352941176,	0.2274509804,	0.1960784314]),
 		});
 
 		this.vertShaderString = `#version 300 es
@@ -100,6 +100,17 @@ export default class TilesHelper {
 		this.shaderProgram = ShaderHelper.createProgramFromSources(gl, [this.vertShaderString,this.fragShaderString]);
 
 		this.textHelper = new TextHelper(gl);
+		this.textHelper.init("2");
+		this.textHelper.init("4");
+		this.textHelper.init("8");
+		this.textHelper.init("16");
+		this.textHelper.init("32");
+		this.textHelper.init("64");
+		this.textHelper.init("128");
+		this.textHelper.init("256");
+		this.textHelper.init("512");
+		this.textHelper.init("1024");
+		this.textHelper.init("2048");
 		
 		this.inObjVertexXY = this.locations.POSITION_LOCATION(this.shaderProgram);
 		this.inTranslationXY = this.locations.TRANSLATE_LOCATION(this.shaderProgram);
@@ -109,7 +120,6 @@ export default class TilesHelper {
 		this.VAO = gl.createVertexArray();
 		gl.bindVertexArray(this.VAO);
 
-		this.yTableOffset = 75;
 		this.tileSquareWidth = tileSquareWidth || 40;
 		this.tileGapWidth = tileGapWidth || 2;
 		this.tileAndGapWidth = 2*this.tileGapWidth + this.tileSquareWidth;
@@ -154,7 +164,7 @@ export default class TilesHelper {
 	 * @param {Grid} grid {@link Grid} Tile positions and values
 	 * @memberof TilesHelper
 	 */
-	render(x, y, grid) {
+	update(x, y, grid) {
 
 		let tileArray = [];
 		for (let indexCol = 0; indexCol < grid.cells.length; indexCol++) {
@@ -178,22 +188,27 @@ export default class TilesHelper {
 			}
 		}
 
-		let translations = [];
-		let colors = [];
-		let values = [];
+		this.translationsArr = new Float32Array(tileArray.length*2);
+		let translationIndex = 0;
+		this.colorsArr = new Float32Array(tileArray.length*3);
+		let colorsIndex = 0;
+		this.tileValueStrings = [];
 		tileArray.forEach(tile => {
-			translations.push(x + (tile.x / grid.size) * this.tileAndGapWidth * grid.size);
-			translations.push(y + this.yTableOffset + (tile.y / grid.size) * this.tileAndGapWidth * grid.size);
-			values.push(String(tile.value));
-			let backgroundColor = tile.value > 2048 ? this.backgrounds[9000] : this.backgrounds[tile.value];
-			colors.push(backgroundColor.r);
-			colors.push(backgroundColor.g);
-			colors.push(backgroundColor.b);
+			this.translationsArr.set([
+				x + (tile.x / grid.size) * this.tileAndGapWidth * grid.size,
+				y + this.tileAndGapWidth + (tile.y / grid.size) * this.tileAndGapWidth * grid.size
+			], translationIndex);
+			translationIndex += 2;
+			this.tileValueStrings.push(String(tile.value));
+			const backgroundColor = tile.value > 2048 ? this.backgrounds[9000] : this.backgrounds[tile.value];
+			this.colorsArr.set(backgroundColor, colorsIndex);
+			colorsIndex += 3;
 		});
-
-		const translationsArr = new Float32Array(translations);
-		this.renderTiles(translationsArr, new Float32Array(colors));
-		this.renderValues(translationsArr, values);
+	}
+	
+	render(msTime) {
+		this.renderTiles(this.translationsArr, this.colorsArr);
+		this.renderValues(this.translationsArr, this.tileValueStrings);
 	}
 
 	/**
@@ -228,7 +243,10 @@ export default class TilesHelper {
 	renderValues(translationsArr, values) {
 		for (let index = 0; index < translationsArr.length; index+=2) {
 			const textSize = this.textHelper.getSize(values[index/2]);
-			this.textHelper.render(translationsArr[index] + this.tileCenter - textSize.x/2, translationsArr[index+1] - this.tileCenter + textSize.y/2, values[index/2]);	
+			this.textHelper.render(
+				translationsArr[index]   + this.tileCenter - textSize.x/2,
+				translationsArr[index+1] - this.tileCenter + textSize.y/2,
+				values[index/2]);	
 		}
 	}
 

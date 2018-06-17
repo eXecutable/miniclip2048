@@ -1,9 +1,9 @@
 
-import HighScoreManager from "./HighScoreManager.js";
-import GameManager from "../game/GameManager.js";
+import HighScoreScreen from "./HighScoreScreen";
+import GameScreen from "../game/GameScreen.js";
 
 
-export default class MainMenuManager {
+export default class MainMenuScreen {
     
 	constructor() {
 		this.buttonsIdx = Object.freeze({
@@ -13,7 +13,7 @@ export default class MainMenuManager {
 		});
 		this.renderer = window.GAME.renderManager.menuRenderer;
 
-		this.currentButtonIdx = 0;
+		this.currentButtonIdx = this.buttonsIdx.start;
 
 		this.map = Object.freeze({
 			38: 0, // Up
@@ -26,6 +26,7 @@ export default class MainMenuManager {
 		});
 
 		this.boundKeydownfunction = this.eventKeyDownFunction.bind(this);
+		this.boundRenderFunction = this.render.bind(this);
 	}
 
 	eventKeyDownFunction(event) {
@@ -40,13 +41,13 @@ export default class MainMenuManager {
 				case 0://Down
 					if (this.currentButtonIdx > 0) {
 						--this.currentButtonIdx;
-						this.renderer.render(this.currentButtonIdx);
+						this.update();
 					}
 					break;
 				case 2://Up
 					if (this.currentButtonIdx < this.buttonsIdx.length - 1) {
 						++this.currentButtonIdx;
-						this.renderer.render(this.currentButtonIdx);
+						this.update();
 					}
 					break;
 				
@@ -77,35 +78,37 @@ export default class MainMenuManager {
 	}
 
 	update() {
-		this.renderer.render(this.buttonsIdx.start);
-		
-		//window.requestAnimationFrame(this.update.bind(this));
+		window.requestAnimationFrame(this.boundRenderFunction);
 	}
 	
+	render(){
+		this.renderer.render(this.currentButtonIdx);
+	}
+
 	/**
+	 * TODO:
 	 *
-	 *
-	 * @memberof MainMenuManager
+	 * @memberof MainMenuScreen
 	 */
 	startGame() {
 		this.unlisten();
-		new GameManager(4).show(this);
+		new GameScreen(4).show(this);
 	}
 
 	/**
+	 * TODO:
 	 *
-	 *
-	 * @memberof MainMenuManager
+	 * @memberof MainMenuScreen
 	 */
 	showHighScores() {
 		this.unlisten();
-		new HighScoreManager().show(this);
+		new HighScoreScreen().show(this);
 	}
 
 	/**
+	 * TODO:
 	 *
-	 *
-	 * @memberof MainMenuManager
+	 * @memberof MainMenuScreen
 	 */
 	exit() {
 		window.GAME.renderManager.releaseGL();

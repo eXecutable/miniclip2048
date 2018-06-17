@@ -26,7 +26,6 @@ export default class InGameInputManager{
 		});
 
 		this.boundKeydownfunction = this.eventKeyDownFunction.bind(this);
-		this.listen();
 	}
 
 	/**

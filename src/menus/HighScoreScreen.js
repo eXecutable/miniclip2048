@@ -1,5 +1,5 @@
 
-export default class HighScoreManager {
+export default class HighScoreScreen {
     
 	constructor() {
 		if(!window.GAME.localStorage)
