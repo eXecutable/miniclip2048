@@ -83,7 +83,11 @@ export default class GameRenderer extends Renderer {
 
 		this.renderHighScore(110, 60, 70, this.gameInfo.scoreDetails.score, this.gameInfo.scoreDetails.bestScore);
 
-		this.tilesHelper.render(msTime);
+		let animating = this.tilesHelper.render(msTime);
+		if(animating && !this.animationFrameRequestID) {
+			this.animationFrameRequestID = window.requestAnimationFrame(this.boundRenderFunction);
+		}
+		
 
 		if (this.gameInfo.scoreDetails.won) {
 			if(!this.winBlinkAnim.IsOn && this.winBlinkAnim.lastBlinkTime + 500 < msTime) {

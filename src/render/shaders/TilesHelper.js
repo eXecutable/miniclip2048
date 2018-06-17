@@ -16,6 +16,9 @@ export default class TilesHelper {
 			throw "No graphic context passed to TextHelper";
 		}
 
+		this.previousUpdateTime = 0;
+		this.animatingTileArray = [];
+
 		this.locations = Object.freeze({
 			/**
 			 * Returns the location of the vertex in buffer
@@ -165,50 +168,104 @@ export default class TilesHelper {
 	 * @memberof TilesHelper
 	 */
 	update(x, y, grid) {
+		this.previousUpdateTime = 0;
+		this.x = x;
+		this.y = y;
+		this.gridSize = grid.size;
 
-		let tileArray = [];
+		this.tileArray = [];
+		this.animatingTileArray = [];
 		for (let indexCol = 0; indexCol < grid.cells.length; indexCol++) {
 			const column = grid.cells[indexCol];
 			for (let indexRow = 0; indexRow < column.length; indexRow++) {
-				const tile = column[indexRow];
+				let tile = column[indexRow];
 				if (tile) {
-					tileArray.push(tile);
-					
-					// if (tile.previousPosition) {
-					// 	//TODO: tween
-					// } else if (tile.mergedFrom) {
-					// 	//TODO: Animate Merging
-					// 	// tile1 = mergedFrom[0]
-					// 	// tile2 = mergedFrom[1]
-					// 	// draw()
-					// } else {
-					// 	//No movement, simple render
-					// }
+					if (tile.previousPosition) {
+						tile.animationPos = {
+							x: tile.previousPosition.x,
+							y: tile.previousPosition.y,
+						};
+						this.animatingTileArray.push(tile);
+					} else if (tile.mergedFrom) {
+						let tempTile = tile.mergedFrom[0];
+						tempTile.animationPos = {
+							x: tempTile.x,
+							y: tempTile.y,
+						};
+						this.tileArray.push(tempTile);
+						tempTile = tile.mergedFrom[1];
+						tempTile.animationPos = {
+							x: tempTile.x,
+							y: tempTile.y,
+						};
+						this.tileArray.push(tempTile);
+					} else {
+						tile.animationPos = {
+							x: tile.x,
+							y: tile.y,
+						};
+						//No movement, simple render
+						this.tileArray.push(tile);
+					}
 				}
 			}
 		}
 
-		this.translationsArr = new Float32Array(tileArray.length*2);
-		let translationIndex = 0;
-		this.colorsArr = new Float32Array(tileArray.length*3);
-		let colorsIndex = 0;
-		this.tileValueStrings = [];
-		tileArray.forEach(tile => {
-			this.translationsArr.set([
-				x + (tile.x / grid.size) * this.tileAndGapWidth * grid.size,
-				y + this.tileAndGapWidth + (tile.y / grid.size) * this.tileAndGapWidth * grid.size
-			], translationIndex);
-			translationIndex += 2;
-			this.tileValueStrings.push(String(tile.value));
-			const backgroundColor = tile.value > 2048 ? this.backgrounds[9000] : this.backgrounds[tile.value];
-			this.colorsArr.set(backgroundColor, colorsIndex);
-			colorsIndex += 3;
-		});
+		
 	}
 	
 	render(msTime) {
-		this.renderTiles(this.translationsArr, this.colorsArr);
-		this.renderValues(this.translationsArr, this.tileValueStrings);
+		if(this.previousUpdateTime === 0) {
+			this.previousUpdateTime = msTime;
+		}
+		let delta = msTime - this.previousUpdateTime;
+		if(delta > 40) {
+			//frame dropped
+			delta = 40;
+		}
+
+		let { animTranslationsArr, animColorsArr, animTileValueStrings } = this.getFloatArrays(this.tileArray, delta, function(){});
+		this.renderTiles(animTranslationsArr, animColorsArr);
+		this.renderValues(animTranslationsArr, animTileValueStrings);
+
+		if(this.animatingTileArray.length > 0) {
+			let { animTranslationsArr, animColorsArr, animTileValueStrings } = this.getFloatArrays(this.animatingTileArray, delta, updateTileAnimationDataMoving);
+			for (let index = 0; index < this.animatingTileArray.length; index++) {
+				const tile = this.animatingTileArray[index];
+				if(tile.x === tile.animationPos.x && tile.y === tile.animationPos.y){
+					//Animation finished add to static ones
+					this.tileArray.push(this.animatingTileArray.splice(index, 1)[0]);
+				}
+			}
+
+			this.renderTiles(animTranslationsArr, animColorsArr);
+			this.renderValues(animTranslationsArr, animTileValueStrings);
+		}
+
+		this.previousUpdateTime = msTime;
+
+		return this.animatingTileArray.length !== 0;
+	}
+
+	getFloatArrays(tileArray, delta, offsetCalculatior) {
+		let animTranslationsArr = new Float32Array(tileArray.length * 2);
+		let translationIndex = 0;
+		let animColorsArr = new Float32Array(tileArray.length * 3);
+		let colorsIndex = 0;
+		let animTileValueStrings = [];
+		tileArray.forEach(tile => {
+			offsetCalculatior(tile, delta);
+			animTranslationsArr.set([
+				this.x + (tile.animationPos.x / this.gridSize) * this.tileAndGapWidth * this.gridSize,
+				this.y + this.tileAndGapWidth + (tile.animationPos.y / this.gridSize) * this.tileAndGapWidth * this.gridSize
+			], translationIndex);
+			translationIndex += 2;
+			animTileValueStrings.push(String(tile.value));
+			const backgroundColor = tile.value > 2048 ? this.backgrounds[9000] : this.backgrounds[tile.value];
+			animColorsArr.set(backgroundColor, colorsIndex);
+			colorsIndex += 3;
+		});
+		return { animTranslationsArr, animColorsArr, animTileValueStrings };
 	}
 
 	/**
@@ -260,5 +317,24 @@ export default class TilesHelper {
 		this.gl.deleteBuffer(this.squareVertexBuffer);
 		this.gl.deleteBuffer(this.translationsBuffer);
 		this.gl.deleteBuffer(this.backgroundColorsBuffer);
+	}
+}
+
+function updateTileAnimationDataMoving(tile, delta) {
+	let distanceX = (tile.x - tile.previousPosition.x);
+	if ((distanceX >= 0 && tile.animationPos.x >= tile.x)
+		|| (distanceX < 0 && tile.animationPos.x <= tile.x)) {
+		tile.animationPos.x = tile.x;
+	}
+	else {
+		tile.animationPos.x += distanceX > 0 ? delta * 0.005 : delta * -0.005;
+	}
+	let distanceY = (tile.y - tile.previousPosition.y);
+	if ((distanceY >= 0 && tile.animationPos.y >= tile.y)
+		|| (distanceY < 0 && tile.animationPos.y <= tile.y)) {
+		tile.animationPos.y = tile.y;
+	}
+	else {
+		tile.animationPos.y += distanceY > 0 ? delta * 0.01 : delta * -0.01;
 	}
 }
