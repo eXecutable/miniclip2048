@@ -1,16 +1,16 @@
 import ShaderHelper from "./ShaderHelper";
-import TextHelper from "./TextHelper.js";
 
 export default class TilesHelper {
 
 	/**
 	 * Creates an instance of TilesHelper.
 	 * @param {WebGLRenderingContext} gl
-	 * @param {Number} tileSquareWidth
-	 * @param {Number} tileGapWidth
+	 * @param {RenderManager} renderManager
+	 * @param {Number} tileSquareWidth pixel size of the square size
+	 * @param {Number} tileGapWidth pixel size of the gap between squares
 	 * @memberof TilesHelper
 	 */
-	constructor(gl, tileSquareWidth, tileGapWidth){
+	constructor(gl, renderManager, tileSquareWidth, tileGapWidth){
 		this.gl = gl;
 		if(!gl){
 			throw "No graphic context passed to TextHelper";
@@ -99,7 +99,7 @@ export default class TilesHelper {
 								}`;
 		this.shaderProgram = ShaderHelper.createProgramFromSources(gl, [this.vertShaderString,this.fragShaderString]);
 
-		this.textHelper = new TextHelper(gl);
+		this.textHelper = renderManager.getGlobalHelper("Text");
 		this.textHelper.init("2");
 		this.textHelper.init("4");
 		this.textHelper.init("8");
@@ -252,10 +252,9 @@ export default class TilesHelper {
 
 	/**
 	 * Release WebGL resources used. Invalidates object, should be called before unreferencing.
-	 * @memberof GameRenderer
+	 * @memberof TilesHelper
 	 */
 	releaseGL() {
-		this.textHelper.releaseGL();
 		this.gl.deleteProgram(this.shaderProgram);
 		this.gl.deleteVertexArray(this.VAO);
 		this.gl.deleteBuffer(this.squareVertexBuffer);

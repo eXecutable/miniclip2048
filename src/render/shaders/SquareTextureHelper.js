@@ -5,10 +5,11 @@ export default class SquareTextureHelper {
 	/**
 	 * Creates an instance of SquareTextureHelper.
 	 * @param {WebGLRenderingContext} gl
+	 * @param {RenderManager} renderManager
 	 * @param {String} imageSrc path to the image to use
 	 * @memberof SquareTextureHelper
 	 */
-	constructor(gl, imageSrc) {
+	constructor(gl, renderManager, imageSrc) {
 		this.gl = gl;
 		if (!gl) {
 			throw "No graphic context passed to SquareTextureHelper";
@@ -44,6 +45,14 @@ export default class SquareTextureHelper {
 			 * @returns {Integer} The location
 			 */
 			TEXT_COORDS_LOCATION: function() { return 4; },
+			/**
+			 * Returns the location of the texture
+			 * @param {WebGLProgram} program the instance to find in
+			 * @returns {Integer} The location
+			 */
+			TEXTURE_LOCATION: function(program) {
+				return gl.getUniformLocation(program, "sourceTexture");
+			},
 		});
 
 		this.vertShaderString = `#version 300 es
@@ -93,6 +102,7 @@ export default class SquareTextureHelper {
 		this.textureCoordenatesUV = this.locations.TEXT_COORDS_LOCATION(this.shaderProgram);
 		this.inTranslationXY = this.locations.TRANSLATE_LOCATION(this.shaderProgram);
 		this.uResolutionXY = this.locations.PROJECTION_LOCATION(this.shaderProgram);
+		this.uTextureSampler  = this.locations.TEXTURE_LOCATION(this.shaderProgram);
 
 		// -- Init Vertex Array
 		this.VAO = gl.createVertexArray();
@@ -120,7 +130,9 @@ export default class SquareTextureHelper {
 		gl.enableVertexAttribArray(this.textureCoordenatesUV);
 		gl.vertexAttribPointer(this.textureCoordenatesUV, 2, gl.FLOAT, false, 0, 0);
 
+		this.textureUnit = renderManager.getNextTextureUnit();
 		this.texture = gl.createTexture();
+		gl.activeTexture(gl.TEXTURE0 + this.textureUnit);
 		gl.bindTexture(gl.TEXTURE_2D, this.texture);
 		// Fill the texture with a 1x1 pixel, to use as a no crash fallback while loading the image
 		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 255, 0, 255]));
@@ -133,6 +145,10 @@ export default class SquareTextureHelper {
 				console.error( this.image.src + " image failed to load.");
 				return;
 			}
+
+			gl.activeTexture(gl.TEXTURE0 + this.textureUnit);
+			gl.bindTexture(gl.TEXTURE_2D, this.texture);
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.image);
 
 			//Square 4 distinct vertexes, 2 triangles with 2 shared vertices
 			let squareVertexArr = new Float32Array([
@@ -171,9 +187,11 @@ export default class SquareTextureHelper {
 		gl.uniform2fv(this.uResolutionXY, [gl.canvas.width, gl.canvas.height]);
 		//x,y in canvas space where the text should be placed
 		gl.uniform2fv(this.inTranslationXY, [x, y]);
+		//set texture unit to sampler
+		gl.uniform1i(this.uTextureSampler, this.textureUnit);
 
+		gl.activeTexture(gl.TEXTURE0 + this.textureUnit);
 		gl.bindTexture(gl.TEXTURE_2D, this.texture);
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.image);
 
 		gl.drawArrays(gl.TRIANGLES, 0, 6);
 	}

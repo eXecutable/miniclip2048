@@ -12,7 +12,9 @@ export default class Renderer {
 	 */
 	constructor(gl){	
 		this.gl = gl;
+		this.animationFrameRequestID = null;
 	}
+
 	/**
 	 * Query if the renderer is ready to render.
 	 * @return {Boolean} true if it's ready to render
@@ -21,6 +23,16 @@ export default class Renderer {
 	isLoaded() {
 		throw "Not implemented";
 	}
+
+	/**
+	 * Stop render loop
+	 * @memberof Renderer
+	 */
+	stop() {
+		window.cancelAnimationFrame(this.animationFrameRequestID);
+		this.animationFrameRequestID = null;
+	}
+
 	/**
 	 * Draw to screen.
 	 * @memberof Renderer
@@ -28,6 +40,7 @@ export default class Renderer {
 	render() {
 		throw "Not implemented";
 	}
+
 	/**
 	 * Release any GL resources. Object becomes invalid to render.
 	 * @memberof Renderer

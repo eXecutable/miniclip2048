@@ -4,7 +4,10 @@ import GameScreen from "../game/GameScreen.js";
 
 
 export default class MainMenuScreen {
-    
+	/**
+	 *Creates an instance of MainMenuScreen.
+	* @memberof MainMenuScreen
+	*/
 	constructor() {
 		this.buttonsIdx = Object.freeze({
 			start: 0,
@@ -26,9 +29,13 @@ export default class MainMenuScreen {
 		});
 
 		this.boundKeydownfunction = this.eventKeyDownFunction.bind(this);
-		this.boundRenderFunction = this.render.bind(this);
 	}
 
+	/**
+	 * Callback from key down event.
+	 * @param {KeyboardEvent} event
+	 * @memberof MainMenuScreen
+	 */
 	eventKeyDownFunction(event) {
 		let modifiers = event.altKey || event.ctrlKey || event.metaKey || event.shiftKey;
 		let mapped    = this.map[event.which];
@@ -41,13 +48,13 @@ export default class MainMenuScreen {
 				case 0://Down
 					if (this.currentButtonIdx > 0) {
 						--this.currentButtonIdx;
-						this.update();
+						this.renderer.update(this.currentButtonIdx);
 					}
 					break;
 				case 2://Up
 					if (this.currentButtonIdx < this.buttonsIdx.length - 1) {
 						++this.currentButtonIdx;
-						this.update();
+						this.renderer.update(this.currentButtonIdx);
 					}
 					break;
 				
@@ -63,31 +70,29 @@ export default class MainMenuScreen {
 		}
 	}
 
+	/**
+	 * Register on document event keydown
+	 * @memberof MainMenuScreen
+	 */
 	listen() {
 		document.addEventListener("keydown", this.boundKeydownfunction);
 	}
 
+	/**
+	 * Stop listening to document event keydown
+	 * @memberof MainMenuScreen
+	 */
 	unlisten() {
 		document.removeEventListener("keydown", this.boundKeydownfunction);
 	}
 
-	
 	show() {
-		this.update();
+		this.renderer.update(this.currentButtonIdx);
 		this.listen();
 	}
 
-	update() {
-		window.requestAnimationFrame(this.boundRenderFunction);
-	}
-	
-	render(){
-		this.renderer.render(this.currentButtonIdx);
-	}
-
 	/**
-	 * TODO:
-	 *
+	 * Launch the main game screen
 	 * @memberof MainMenuScreen
 	 */
 	startGame() {

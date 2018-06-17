@@ -1,18 +1,18 @@
 import Renderer from "../render/Renderer.js";
 import TilesHelper from "../render/shaders/TilesHelper.js";
-import TextHelper from "../render/shaders/TextHelper.js";
 
 export default class GameRenderer extends Renderer {
 	/**
 	 *Creates an instance of GameRenderer.
 	* @param {WebGLRenderingContext} gl
+	* @param {RenderManager} renderManager
 	* @memberof GameRenderer
 	*/
-	constructor(gl){
+	constructor(gl, renderManager){
 		super(gl);
 
-		this.tilesHelper = new TilesHelper(gl);
-		this.textHelper = new TextHelper(gl);
+		this.tilesHelper = new TilesHelper(gl, renderManager);
+		this.textHelper = renderManager.getGlobalHelper("Text");
 		
 		this.highscoreLabel = "highscore: ";
 		this.textHelper.init(this.highscoreLabel);
@@ -37,7 +37,12 @@ export default class GameRenderer extends Renderer {
 		this.gameInfo = {};
 
 		this.boundRenderFunction = this.render.bind(this);
+		this.winBlinkAnim = {
+			lastBlinkTime: 0,
+			IsOn: false,
+		};
 	}
+
 	/**
 	 * Is game ready to render
 	 * @returns {Boolean} 
@@ -46,8 +51,9 @@ export default class GameRenderer extends Renderer {
 	isLoaded() {
 		return this.textHelper.isLoaded();
 	}
+
 	/**
-	 * Draw TODO:
+	 * Update the game variables. Will schedule a render() call.
 	 * @param {Grid} grid 
 	 * @param {Object} scoreDetails Game score details to display on top of the game
 	 * @memberof GameRenderer
@@ -57,11 +63,19 @@ export default class GameRenderer extends Renderer {
 		this.gameInfo.scoreDetails = scoreDetails;
 		this.tilesHelper.update(100, 90, grid);
 
-		window.requestAnimationFrame(this.boundRenderFunction);
+		if(!this.animationFrameRequestID) {
+			this.animationFrameRequestID = window.requestAnimationFrame(this.boundRenderFunction);
+		}
 	}
 	
+	/**
+	 * Draw game on the canvas
+	 * @param {Number} msTime
+	 * @memberof GameRenderer
+	 */
 	render(msTime) {
 		let gl = this.gl;
+		this.animationFrameRequestID = null;
 
 		gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 		gl.clearColor(0.8, 0.9, 0.9, 1.0);
@@ -72,7 +86,20 @@ export default class GameRenderer extends Renderer {
 		this.tilesHelper.render(msTime);
 
 		if (this.gameInfo.scoreDetails.won) {
-			this.textHelper.render(gl.canvas.width/2 - this.textWinSize.x/2, 290, this.winLabel);
+			if(!this.winBlinkAnim.IsOn && this.winBlinkAnim.lastBlinkTime + 500 < msTime) {
+				this.winBlinkAnim.IsOn = true;
+				this.winBlinkAnim.lastBlinkTime = msTime;
+			}
+			if(this.winBlinkAnim.IsOn){
+				this.textHelper.render(gl.canvas.width/2 - this.textWinSize.x/2, 290, this.winLabel);
+				if(this.winBlinkAnim.lastBlinkTime + 500 < msTime) {
+					this.winBlinkAnim.IsOn = false;
+					this.winBlinkAnim.lastBlinkTime = msTime;
+				}
+			}
+			if(!this.animationFrameRequestID) {
+				this.animationFrameRequestID = window.requestAnimationFrame(this.boundRenderFunction);
+			}
 		}
 		if (this.gameInfo.scoreDetails.over) {
 			this.textHelper.render(gl.canvas.width/2 - this.textGameoverSize.x/2, 300, this.gameoverLabel);
@@ -104,7 +131,6 @@ export default class GameRenderer extends Renderer {
 	 * @memberof GameRenderer
 	 */
 	releaseGL() {
-		this.textHelper.releaseGL();
 		this.gl.deleteProgram(this.shaderProgram);
 		this.gl.deleteVertexArray(this.squareVertexArray);
 		this.gl.deleteBuffer(this.squareVertexBuffer);

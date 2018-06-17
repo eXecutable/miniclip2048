@@ -31,6 +31,7 @@ export default class GameScreen {
 	 * @memberof GameScreen
 	 */
 	goBack(){
+		this.renderer.stop();
 		this.inputManager.unlisten();
 		this.previousScreen.show();
 	}
@@ -96,7 +97,7 @@ export default class GameScreen {
 	 */
 	addRandomTile() {
 		if (this.grid.cellsAvailable()) {
-			let value = Math.random() < 0.9 ? 1024 : 4;
+			let value = Math.random() < 0.9 ? 2 : 4;
 			let tile = new Tile(this.grid.randomAvailableCell(), value);
   
 			this.grid.insertTile(tile);
@@ -195,7 +196,7 @@ export default class GameScreen {
 						this.score += merged.value;
   
 						// The mighty 2048 tile
-						if (merged.value === 2048) this.won = true;
+						if (merged.value >= 2048) this.won = true;
 					} else {
 						this.moveTile(tile, positions.farthest);
 					}

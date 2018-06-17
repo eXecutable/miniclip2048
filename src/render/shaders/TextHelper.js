@@ -5,9 +5,10 @@ export default class TextHelper {
 	/**
 	 * Creates an instance of TextHelper.
 	 * @param {WebGLRenderingContext} gl
+	 * @param {RenderManager} renderManager
 	 * @memberof TextHelper
 	 */
-	constructor(gl) {
+	constructor(gl, renderManager) {
 		this.gl = gl;
 		if(!gl){
 			throw "No graphic context passed to TextHelper";
@@ -46,9 +47,18 @@ export default class TextHelper {
 				return gl.getUniformLocation(program, "projection");
 			},
 			/**
-			 * TODO:
+			 * Returns the location of the texture coordenates in buffer
+			 * @returns {Integer} The location
 			 */
 			TEXT_COORDS_LOCATION: function() { return 4; },
+			/**
+			 * Returns the location of the texture
+			 * @param {WebGLProgram} program the instance to find in
+			 * @returns {Integer} The location
+			 */
+			TEXTURE_LOCATION: function(program) {
+				return gl.getUniformLocation(program, "glyphTexture");
+			},
 		});
 
 		this.vertShaderString = `#version 300 es
@@ -104,6 +114,7 @@ export default class TextHelper {
 		this.inTranslationXY = this.locations.TRANSLATE_LOCATION(this.shaderProgram);
 		this.inColor = this.locations.COLOR_LOCATION(this.shaderProgram);
 		this.uResolutionXY = this.locations.PROJECTION_LOCATION(this.shaderProgram);
+		this.uTextureSampler = this.locations.TEXTURE_LOCATION(this.shaderProgram);
 		
 		
 		// -- Init Vertex Array
@@ -120,8 +131,9 @@ export default class TextHelper {
 		gl.enableVertexAttribArray(this.textureCoordenatesUV);
 		gl.vertexAttribPointer(this.textureCoordenatesUV, 2, gl.FLOAT, false, 0, 0);
 
-		// Create a texture.
+		this.textureUnit = renderManager.getNextTextureUnit();
 		this.glyphTex = gl.createTexture();
+		gl.activeTexture(gl.TEXTURE0 + this.textureUnit);
 		gl.bindTexture(gl.TEXTURE_2D, this.glyphTex);
 		// Fill the texture with a 1x1 blue pixel, to use as a no crash fallback while loading the image
 		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 255, 255]));
@@ -135,6 +147,11 @@ export default class TextHelper {
 				console.error( this.image.src + " image failed to load.");
 				return;
 			}
+
+			gl.activeTexture(gl.TEXTURE0 + this.textureUnit);
+			gl.bindTexture(gl.TEXTURE_2D, this.glyphTex);
+			gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.image);
 
 			this.loaded = true;
 		});
@@ -328,15 +345,16 @@ export default class TextHelper {
 		gl.uniform2fv(this.inTranslationXY, [x, y]);
 		//set tint color
 		gl.uniform4fv(this.inColor, tintColor || [1.0, 1.0, 1.0, 1.0]);
-		
+		//set texture unit to sampler
+		gl.uniform1i(this.uTextureSampler, this.textureUnit);
+
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, this.knownStrings[text].arrays.position, gl.DYNAMIC_DRAW);
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.textureCoordsBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, this.knownStrings[text].arrays.texcoord, gl.DYNAMIC_DRAW);
 
+		gl.activeTexture(gl.TEXTURE0 + this.textureUnit);
 		gl.bindTexture(gl.TEXTURE_2D, this.glyphTex);
-		gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.image);
 
 		// Draw the text
 		gl.drawArrays(gl.TRIANGLES, 0, this.knownStrings[text].numVertices);
