@@ -1,6 +1,6 @@
 import Grid from "./Grid.js";
 import Tile from "./Tile.js";
-import InGameInputManager from "./InGameInputManager";
+import InGameInputManager from "./InGameInputManager.js";
 
 export default class GameScreen {
 
@@ -160,7 +160,7 @@ export default class GameScreen {
 		}
   
 		let cell, tile;
-  		let vector     = GameScreen.getVector(direction);
+		let vector     = GameScreen.getVector(direction);
 		let traversals = this.buildTraversals(vector);
 		let moved      = false;
   

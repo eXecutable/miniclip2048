@@ -1,9 +1,18 @@
-import HighScoreScreen from "./HighScoreScreen";
+import HighScoreScreen from "./HighScoreScreen.js";
 
 describe("HighScoreScreen", function () {
 	
+	it("Should instanciate", function () {
+		window.GAME = {
+			renderManager: {highscoresRenderer: {update: function(){}}},
+			localStorage: {getHighScoreList: function(){}},
+		};
+		let screen = new HighScoreScreen();
+		screen.show({show: function(){}});
+		delete window.GAME;
+	});
+
 	//TODO:
-	// it("should be have default value", function () {
 	// 	let tile = new Tile({x:0, y:1});
 	// 	expect(tile.value).exist;
 	// });

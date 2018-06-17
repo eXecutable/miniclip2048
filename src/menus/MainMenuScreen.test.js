@@ -1,4 +1,4 @@
-import MainMenuScreen from "./MainMenuScreen";
+import MainMenuScreen from "./MainMenuScreen.js";
 
 describe("MainMenuScreen", function () {
 	

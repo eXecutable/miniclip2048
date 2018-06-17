@@ -1,5 +1,5 @@
 
-import HighScoreScreen from "./HighScoreScreen";
+import HighScoreScreen from "./HighScoreScreen.js";
 import GameScreen from "../game/GameScreen.js";
 
 
