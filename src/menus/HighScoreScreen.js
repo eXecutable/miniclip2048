@@ -51,15 +51,13 @@ export default class HighScoreScreen {
 	 */
 	show(previousScreen) {
 		this.previousScreen = previousScreen;
-		//TODO: this.storage.get
-
-		this.renderer.update();
+		this.renderer.update(this.storage.getHighScoreList());
 		this.listen();
 	}
 
 	/**
 	 * Stop answering keys and display the previous screen.
-	 * @memberof GameScreen
+	 * @memberof HighScoreScreen
 	 */
 	goBack() {
 		this.unlisten();

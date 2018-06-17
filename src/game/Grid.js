@@ -144,6 +144,19 @@ export default class Grid {
 	}
 
 	/**
+	 * Move a tile and its representation
+	 * @param {Tile} Item to be placed at new position
+	 * @param {Object} cell target position
+	 * @memberof Grid
+	 */
+	moveTile(tile, cell) {
+		let tileToMove = this.cells[tile.x][tile.y];
+		this.cells[tile.x][tile.y] = null;
+		this.cells[cell.x][cell.y] = tileToMove;
+		tileToMove.updatePosition(cell);
+	}
+
+	/**
 	 * Removes a {@link Tile} in the grid from the Tile's position
 	 * @param {Object} tile Object with x and y
 	 * @memberof Grid

@@ -3,7 +3,12 @@ import Tile from "./Tile.js";
 import InGameInputManager from "./InGameInputManager";
 
 export default class GameScreen {
-    
+
+	/**
+	 * Creates an instance of GameScreen.
+	 * @param {Number} size number of tiles per row in the game
+	 * @memberof GameScreen
+	 */
 	constructor(size) {
 		this.size           = size; // Size of the grid
 		this.inputManager   = new InGameInputManager();
@@ -14,11 +19,13 @@ export default class GameScreen {
   
 		this.inputManager.on("move", this.move.bind(this));
 		this.inputManager.on("restart", this.restart.bind(this));
-		this.inputManager.on("keepPlaying", this.keepPlaying.bind(this));
 		this.inputManager.on("goBack", this.goBack.bind(this));
 	}
   
-	//TODO: DerivefromScreenManager
+	/**
+	 * Display this screen
+	 * @memberof GameScreen
+	 */
 	show(previousScreen) {
 		this.previousScreen = previousScreen;
 		
@@ -42,22 +49,13 @@ export default class GameScreen {
 	 */
 	restart() {
 		this.storageManager.clearGameState();
-		//TODO: this.actuator.continueGame(); // Clear the game won/lost message
 		this.setup();
 	}
-  
-	// Keep playing after winning (allows going over 2048)
-	keepPlaying() {
-		this.keepPlaying = true;
-		//TODO: this.actuator.continueGame(); // Clear the game won/lost message
-	}
-  
-	// Return true if the game is lost, or has won and the user hasn't kept playing
-	isGameTerminated() {
-		return this.over;
-	}
-  
-	// Create the game
+   
+	/**
+	 * Load previous state. If previous state is over or non-existent load a new game.
+	 * @memberof GameScreen
+	 */
 	setup() {
 		let previousState = this.storageManager.getGameState();
   
@@ -78,7 +76,7 @@ export default class GameScreen {
 		}
   
 		// Update the actuator
-		this.actuate();
+		this.onGameStateChange();
 	}
   
 	/**
@@ -104,12 +102,11 @@ export default class GameScreen {
 		}
 	}
   
-	// Sends the updated grid to the actuator
-	actuate() {
-		if (this.storageManager.getBestScore() < this.score) {
-			this.storageManager.setBestScore(this.score);
-		}
-  
+	/**
+	 * Updates interested in the game state
+	 * @memberof GameScreen
+	 */
+	onGameStateChange() {
 		// Clear the state when the game is over (game over only, not win)
 		if (this.over) {
 			this.storageManager.clearGameState();
@@ -139,7 +136,10 @@ export default class GameScreen {
 		};
 	}
   
-	// Save all tile positions and remove merger info
+	/**
+	 * Save all tile positions and remove merger info
+	 * @memberof GameScreen
+	 */
 	prepareTiles() {
 		this.grid.eachCell(function (x, y, tile) {
 			if (tile) {
@@ -149,23 +149,18 @@ export default class GameScreen {
 		});
 	}
   
-	// Move a tile and its representation
-	moveTile(tile, cell) {
-		//TODO: fix access to grid.cells
-		this.grid.cells[tile.x][tile.y] = null;
-		this.grid.cells[cell.x][cell.y] = tile;
-		tile.updatePosition(cell);
-	}
-  
-	// Move tiles on the grid in the specified direction
+	/**
+	 * Move tiles on the grid in the specified direction. Does nothing if game is over.
+	 * @param {Number} direction 0: up, 1: right, 2: down, 3: left
+	 * @memberof GameScreen
+	 */
 	move(direction) {
-		// 0: up, 1: right, 2: down, 3: left
-
-		if (this.isGameTerminated()) return; // Don't do anything if the game's over
+		if (this.over) {
+			return; // Don't do anything if the game's over
+		}
   
 		let cell, tile;
-  
-		let vector     = GameScreen.getVector(direction);
+  		let vector     = GameScreen.getVector(direction);
 		let traversals = this.buildTraversals(vector);
 		let moved      = false;
   
@@ -198,7 +193,7 @@ export default class GameScreen {
 						// The mighty 2048 tile
 						if (merged.value >= 2048) this.won = true;
 					} else {
-						this.moveTile(tile, positions.farthest);
+						this.grid.moveTile(tile, positions.farthest);
 					}
   
 					if (!GameScreen.positionsEqual(cell, tile)) {
@@ -215,26 +210,8 @@ export default class GameScreen {
 				this.over = true; // Game over!
 			}
   
-			this.actuate();
+			this.onGameStateChange();
 		}
-	}
-  
-	/**
-	 * Get the vector representing the chosen direction
-	 * @static
-	 * @param {Number} direction 0-Up, 1-Right, 2-Down, 3-Left
-	 * @returns
-	 * @memberof GameScreen
-	 */
-	static getVector(direction) {
-		// Vectors representing tile movement
-		const map = Object.freeze({
-			0: Object.freeze({ x: 0,  y: -1 }), // Up
-			1: Object.freeze({ x: 1,  y: 0 }),  // Right
-			2: Object.freeze({ x: 0,  y: 1 }),  // Down
-			3: Object.freeze({ x: -1, y: 0 })   // Left
-		});
-		return map[direction];
 	}
   
 	/**
@@ -257,7 +234,14 @@ export default class GameScreen {
   
 		return traversals;
 	}
-  
+	
+	/**
+	 * Discover the target empty space on a given direction
+	 * @param {Object} cell x and y to start from
+	 * @param {Object} vector unitary x and y to define search direction
+	 * @returns {Object} farthest: target empty cell, next: the cell after
+	 * @memberof GameScreen
+	 */
 	findFarthestPosition(cell, vector) {
 		let previous;
   
@@ -311,6 +295,24 @@ export default class GameScreen {
 		return false;
 	}
 
+	/**
+	 * Get the vector representing the chosen direction
+	 * @static
+	 * @param {Number} direction 0-Up, 1-Right, 2-Down, 3-Left
+	 * @returns
+	 * @memberof GameScreen
+	 */
+	static getVector(direction) {
+		// Vectors representing tile movement
+		const map = Object.freeze({
+			0: Object.freeze({ x: 0,  y: -1 }), // Up
+			1: Object.freeze({ x: 1,  y: 0 }),  // Right
+			2: Object.freeze({ x: 0,  y: 1 }),  // Down
+			3: Object.freeze({ x: -1, y: 0 })   // Left
+		});
+		return map[direction];
+	}
+	
 	/**
 	 * Helper function to compare positions
 	 * @static
