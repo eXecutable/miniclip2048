@@ -5,14 +5,15 @@ import GameScreen from "../game/GameScreen.js";
 
 export default class MainMenuScreen {
 	/**
-	 *Creates an instance of MainMenuScreen.
-	* @memberof MainMenuScreen
-	*/
+	 * Creates an instance of MainMenuScreen.
+	 * @memberof MainMenuScreen
+	 */
 	constructor() {
 		this.buttonsIdx = Object.freeze({
 			start: 0,
 			highscores: 1,
-			length: 2,
+			exit: 2,
+			length: 3,
 		});
 		this.renderer = window.GAME.renderManager.menuRenderer;
 
@@ -32,7 +33,7 @@ export default class MainMenuScreen {
 	}
 
 	/**
-	 * Callback from key down event.
+	 * Callback from key down event
 	 * @param {KeyboardEvent} event
 	 * @memberof MainMenuScreen
 	 */
@@ -61,6 +62,10 @@ export default class MainMenuScreen {
 				case 4://Enter
 					if (this.currentButtonIdx === this.buttonsIdx.start) {
 						this.startGame();
+					} else if (this.currentButtonIdx === this.buttonsIdx.highscores) {
+						this.showHighScores();
+					} else if (this.currentButtonIdx === this.buttonsIdx.exit) {
+						this.exit();
 					}
 					break;
 				default:
@@ -86,6 +91,10 @@ export default class MainMenuScreen {
 		document.removeEventListener("keydown", this.boundKeydownfunction);
 	}
 
+	/**
+	 * Display this screen
+	 * @memberof MainMenuScreen
+	 */
 	show() {
 		this.renderer.update(this.currentButtonIdx);
 		this.listen();
@@ -101,8 +110,7 @@ export default class MainMenuScreen {
 	}
 
 	/**
-	 * TODO:
-	 *
+	 * Display the highscore screen
 	 * @memberof MainMenuScreen
 	 */
 	showHighScores() {
@@ -111,11 +119,11 @@ export default class MainMenuScreen {
 	}
 
 	/**
-	 * TODO:
-	 *
+	 * Shut everything down
 	 * @memberof MainMenuScreen
 	 */
 	exit() {
+		this.unlisten();
 		window.GAME.renderManager.releaseGL();
 	}
 }

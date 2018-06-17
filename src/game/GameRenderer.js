@@ -117,7 +117,7 @@ export default class GameRenderer extends Renderer {
 	 * @param {Number} currentScore Current game score
 	 * @param {Number} bestScore Best score stored
 	 * @memberof GameRenderer
-	*/
+	 */
 	renderHighScore(x, highScoreY, currentScoreY, currentScore, bestScore) {
 		this.textHelper.render(x, highScoreY, this.highscoreLabel);
 		this.textHelper.render(x + this.textHighScoreSize.x, highScoreY, String(bestScore));

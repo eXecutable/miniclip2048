@@ -6,14 +6,16 @@ import TextHelper from "../render/shaders/TextHelper.js";
 export default class RenderManager {
 	
 	/**
-	 *Creates an instance of RenderManager.
-	* @memberof RenderManager
-	*/
+	 * Creates an instance of RenderManager.
+	 * @memberof RenderManager
+	 */
 	constructor(){
 		let gl = document.getElementById("canvas").getContext("webgl2");
 		if (!gl) {
 			throw "Webgl2 not found.";
 		}
+		this.nextTextureUnitAvailable = 0;
+
 		this.helpers = {
 			Text: new TextHelper(gl, this),
 		};
@@ -23,7 +25,6 @@ export default class RenderManager {
 		this.menuRenderer = new MainMenuRenderer(gl, this);
 
 		this.renderers = [this.menuRenderer, this.highscoresRenderer, this.gameRenderer];
-		this.nextTextureUnitAvailable = 0;
 	}
 
 	/**

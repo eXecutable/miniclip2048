@@ -14,7 +14,11 @@ export default class MainMenuRenderer extends Renderer {
 
 		this.textHelper = renderManager.getGlobalHelper("Text");
 		this.textHelper.init("game");
+		this.textHelper.init("game selected");
 		this.textHelper.init("highscores");
+		this.textHelper.init("highscores selected");
+		this.textHelper.init("exit");
+		this.textHelper.init("exit selected");
 
 		this.backgroundShader = new SquareTextureHelper(gl, renderManager, backgroundImage);
 
@@ -50,12 +54,22 @@ export default class MainMenuRenderer extends Renderer {
 
 		this.backgroundShader.render(0,0);
 
-		if(this.buttonIndex === 0) {
+		switch(this.buttonIndex) {
+		case 0:
 			this.textHelper.render(100, 200, "game selected");
-			this.textHelper.render(100, 300, "highscores");
-		} else {
+			this.textHelper.render(100, 250, "highscores");
+			this.textHelper.render(100, 300, "exit");
+			break;
+		case 1:
 			this.textHelper.render(100, 200, "game");
-			this.textHelper.render(100, 300, "highscores selected");
+			this.textHelper.render(100, 250, "highscores selected");
+			this.textHelper.render(100, 300, "exit");
+			break;
+		case 2:
+			this.textHelper.render(100, 200, "game");
+			this.textHelper.render(100, 250, "highscores");
+			this.textHelper.render(100, 300, "exit selected");
+			break;
 		}
 	}
 
