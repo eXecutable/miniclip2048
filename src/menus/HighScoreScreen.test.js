@@ -1,6 +1,6 @@
-import GameScreen from "./GameScreen";
+import HighScoreScreen from "./HighScoreScreen";
 
-describe("GameScreen", function () {
+describe("HighScoreScreen", function () {
 	
 	//TODO:
 	// it("should be have default value", function () {

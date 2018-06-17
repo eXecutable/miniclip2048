@@ -1,6 +1,6 @@
-import GameScreen from "./GameScreen";
+import MainMenuScreen from "./MainMenuScreen";
 
-describe("GameScreen", function () {
+describe("MainMenuScreen", function () {
 	
 	//TODO:
 	// it("should be have default value", function () {
