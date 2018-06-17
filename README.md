@@ -6,8 +6,11 @@ This is a no game frameworks/engines 2048 game in WebGL2.
 
 Firstly index.js loads the static global objects. Once they are completly initialized MainMenuScreen is displayed and navigation starts from there.
 
+#### Screens
 The application is composed of Screens: MainMenuScreen, HighScoreScreen and GameScreen. The screens care about updating the application state.
+#### Renderers
 Every screen has a Renderer associated. Renderers draw the elements on to the screen for the current state.
+#### Helpers
 Helper objects encapsulate shaders and WebGL calls.
 
 ## Getting Started
