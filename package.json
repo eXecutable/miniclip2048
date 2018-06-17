@@ -17,7 +17,7 @@
     "webpack-serve": "^1.0.3"
   },
   "scripts": {
-    "test": "http-server ./ -c-1 -p8081 -o",
+    "test": "http-server ./ -c-1 -p8181 -o",
     "build": "webpack",
     "serve": "webpack-serve"
   },

@@ -1,9 +1,14 @@
-# miniclip2048
-
-
 # 2048 Miniclip exercise
 
 This is a no game frameworks/engines 2048 game in WebGL2.
+
+## Arquitecture Overview
+
+Firstly index.js loads the static global objects. Once they are completly initialized MainMenuScreen is displayed and navigation starts from there.
+
+The application is composed of Screens: MainMenuScreen, HighScoreScreen and GameScreen. The screens care about updating the application state.
+Every screen has a Renderer associated. Renderers draw the elements on to the screen for the current state.
+Helper objects encapsulate shaders and WebGL calls.
 
 ## Getting Started
 
@@ -12,6 +17,8 @@ These instructions will get you a copy of the project up and running on your loc
 ### Prerequisites
 
 Have npm (https://www.npmjs.com/) installed.
+
+Visual Code settings are available.
 
 ### Installing
 
@@ -27,26 +34,35 @@ Download dependencies
 npm install
 ```
 
-End with an example of getting some data out of the system or using it for a little demo
+Start webpack development server
+
+```
+npm run serve
+```
+
+Access the website. (Simply press F5 in VSCode)
+```
+http://localhost:8080/
+```
 
 ## Running the tests
 
-Explain how to run the automated tests for this system
-
-### Break down into end to end tests
-
-Explain what these tests test and why
-
+Launch the test server
 ```
-Give an example
+npm run test
 ```
 
-### And coding style tests
+Navigate to the index_test.html
 
-Explain what these tests test and why
+### Adding new tests
 
+Since we are using ES6 to add tests go to run.js and import the desired module
 ```
-Give an example
+import "./../src/game/Tile.test.js";
+import "./../src/game/Grid.test.js";
+
+mocha.checkLeaks();
+mocha.run();
 ```
 
 ## Built With
